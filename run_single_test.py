@@ -71,11 +71,11 @@ if __name__ == "__main__":
     pipeline.decode_vae = types.MethodType(decode_vae, pipeline)
     pipeline.encode_prompt = types.MethodType(encode_prompt, pipeline)
 
-    pipeline.caption = CaptionPipeline(
+    pipeline.caption_pipeline = CaptionPipeline(
         llm_dir=os.path.join(args.model_dir, "step_llm"), 
         clip_dir=os.path.join(args.model_dir, "hunyuan_clip")
     )
-    pipeline.vae = StepVaePipeline(
+    pipeline.vae_pipeline = StepVaePipeline(
         vae_dir=os.path.join(args.model_dir, "vae")
     )
 

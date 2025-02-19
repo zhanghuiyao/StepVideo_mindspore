@@ -42,7 +42,7 @@ if __name__ == "__main__":
         height: int = 544,
         width: int = 992,
         num_frames: int = 204,
-        num_inference_steps: int = 50,
+        num_inference_steps: int = 5,
         guidance_scale: float = 9.0,
         time_shift: float = 13.0,
         neg_magic: str = "",
@@ -78,7 +78,7 @@ if __name__ == "__main__":
         prompt_embeds = prompt_embeds.to(transformer_dtype)
         prompt_attention_mask = prompt_attention_mask.to(transformer_dtype)
         prompt_embeds_2 = prompt_embeds_2.to(transformer_dtype)
-        print("="* 100 + "\n" + f"get encode_prompt from server success.")
+        print("="* 100 + "\n" + f"Step1. get encode_prompt from server success.")
         print(f"{prompt_embeds.shape=}")
         print(f"{prompt_embeds_2.shape=}")
         print(f"{prompt_attention_mask.shape=}")
@@ -100,6 +100,8 @@ if __name__ == "__main__":
             ms.bfloat16,
             latents,
         )
+        print("="* 100 + "\n" + f"Step2. get latent success.")
+        print(f"{latents.shape=}")
 
         # 7. Denoising loop
         with self.progress_bar(total=num_inference_steps) as progress_bar:
@@ -132,8 +134,20 @@ if __name__ == "__main__":
                 
                 progress_bar.update()
 
+        video = self.decode_vae(latents)
+        print("="* 100 + "\n" + f"Step3. get video from vae server success.")
+        print(f"{video.shape=}")
 
-    
+        video = self.video_processor.postprocess_video(video, output_file_name=output_file_name, output_type=output_type)
+        print("="* 100 + "\n" + f"Step4. save video success.")
+        print(f"{video.shape=}")
+
+
+    import types
+    pipeline.__call__ = types.MethodType(__call__, pipeline)
+
+
+    args.infer_steps = 5  # for test
     prompt = args.prompt
     videos = pipeline(
         prompt=prompt, 
