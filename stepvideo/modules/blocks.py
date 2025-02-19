@@ -88,7 +88,6 @@ class SelfAttention(Attention):
     
 class CrossAttention(Attention):
     def __init__(self, hidden_dim, head_dim, bias=False, with_qk_norm=True, attn_type='mindspore', sp_group: str = None):
-        super().__init__()
         self.head_dim = head_dim
         self.n_heads = hidden_dim // head_dim
         
