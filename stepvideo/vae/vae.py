@@ -273,6 +273,9 @@ class CausalConv(nn.Cell):
 
         if isinstance(kernel_size, int):
             kernel_size = kernel_size if isinstance(kernel_size, tuple) else ((kernel_size,) * 3)
+        elif isinstance(kernel_size, list):
+            kernel_size = tuple(kernel_size)
+
         time_kernel_size, height_kernel_size, width_kernel_size = kernel_size
 
         self.dilation = kwargs.pop('dilation', 1)
