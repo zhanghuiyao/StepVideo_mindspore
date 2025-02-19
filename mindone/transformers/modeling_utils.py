@@ -1610,6 +1610,9 @@ class MSPreTrainedModel(nn.Cell, ModuleUtilsMixin, GenerationMixin, PushToHubMix
         keep_in_fp32_modules = None
         use_keep_in_fp32_modules = False
 
+        # FIXME: zhy_test comment load ckpt 1
+        resolved_archive_file = None
+        """
         if pretrained_model_name_or_path is not None:
             pretrained_model_name_or_path = str(pretrained_model_name_or_path)
             is_local = os.path.isdir(pretrained_model_name_or_path)
@@ -1824,7 +1827,8 @@ class MSPreTrainedModel(nn.Cell, ModuleUtilsMixin, GenerationMixin, PushToHubMix
                 logger.info(f"loading weights file {filename} from cache at {resolved_archive_file}")
         else:
             resolved_archive_file = None
-
+        """
+            
         # We'll need to download and cache each checkpoint shard if the checkpoint is sharded.
         if is_sharded:
             # resolved_archive_file becomes a list of files that point to the different checkpoint shards in this case.
@@ -1868,9 +1872,11 @@ class MSPreTrainedModel(nn.Cell, ModuleUtilsMixin, GenerationMixin, PushToHubMix
 
         # load pt weights early so that we know which dtype to init the model under
         if from_pt:
-            if not is_sharded and state_dict is None:
-                # Time to load the checkpoint
-                state_dict = load_state_dict(resolved_archive_file)
+            # FIXME: zhy_test comment load ckpt 2
+            state_dict = {}
+            # if not is_sharded and state_dict is None:
+            #     # Time to load the checkpoint
+            #     state_dict = load_state_dict(resolved_archive_file)
 
             # set dtype to instantiate the model under:
             # 1. If mindspore_dtype is not None, we use that dtype
@@ -2145,6 +2151,7 @@ class MSPreTrainedModel(nn.Cell, ModuleUtilsMixin, GenerationMixin, PushToHubMix
             if len(resolved_archive_file) > 1:
                 resolved_archive_file = logging.tqdm(resolved_archive_file, desc="Loading checkpoint shards")
 
+            # FIXME: zhy_test comment load ckpt 3
             # loading checkpoint
             # _s_time = time.time()
             # for shard_file in resolved_archive_file:
