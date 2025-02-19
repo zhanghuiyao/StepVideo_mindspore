@@ -107,7 +107,7 @@ class Base_conv3d(nn.Cell):
         if isinstance(nn_padding, tuple) and len(nn_padding) == 6:
             ops_padding = (nn_padding[0], nn_padding[2], nn_padding[4])
         else:
-            ops_padding = nn_padding
+            ops_padding = (nn_padding,) * 3
         
         if only_return_output:
             size = cal_outsize(x.shape, self.conv_layer.weight.shape, self.conv_layer.stride, padding=ops_padding)
