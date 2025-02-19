@@ -159,7 +159,7 @@ class StepVideoModel(ModelMixin, ConfigMixin):
         added_cond_kwargs: Dict[str, Tensor] = None,
         encoder_attention_mask: Optional[Tensor] = None,
         fps: Tensor=None,
-        # return_dict: bool = True,  # FIXME: return_dict
+        return_dict: bool = True,  # FIXME: return_dict
     ):
         assert hidden_states.ndim==5; "hidden_states's shape should be (bsz, f, ch, h ,w)"
 
