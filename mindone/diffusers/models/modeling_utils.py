@@ -594,20 +594,21 @@ class ModelMixin(nn.Cell, PushToHubMixin):
                         "Defaulting to unsafe serialization. Pass `allow_pickle=False` to raise an error instead."
                     )
 
-            if model_file is None and not is_sharded:
-                model_file = _get_model_file(
-                    pretrained_model_name_or_path,
-                    weights_name=_add_variant(WEIGHTS_NAME, variant),
-                    cache_dir=cache_dir,
-                    force_download=force_download,
-                    proxies=proxies,
-                    local_files_only=local_files_only,
-                    token=token,
-                    revision=revision,
-                    subfolder=subfolder,
-                    user_agent=user_agent,
-                    commit_hash=commit_hash,
-                )
+            # FIXME: zhy_test, loading checkpoint 1
+            # if model_file is None and not is_sharded:
+            #     model_file = _get_model_file(
+            #         pretrained_model_name_or_path,
+            #         weights_name=_add_variant(WEIGHTS_NAME, variant),
+            #         cache_dir=cache_dir,
+            #         force_download=force_download,
+            #         proxies=proxies,
+            #         local_files_only=local_files_only,
+            #         token=token,
+            #         revision=revision,
+            #         subfolder=subfolder,
+            #         user_agent=user_agent,
+            #         commit_hash=commit_hash,
+            #     )
 
             model = cls.from_config(config, **unused_kwargs)
 
@@ -620,33 +621,33 @@ class ModelMixin(nn.Cell, PushToHubMixin):
             elif mindspore_dtype is not None:
                 model = model.to(mindspore_dtype)
 
-            if is_sharded:
-                # FIXME: zhy_test, comment for test
-                # load_checkpoint_and_dispatch(
-                #     model,
-                #     index_file,  # TODO: check accelerate
-                #     dtype=mindspore_dtype,
-                #     strict=True,
-                # )
-                pass
-            else:
-                state_dict = load_state_dict(model_file, variant=variant)
-                model._convert_deprecated_attention_blocks(state_dict)
+            # FIXME: zhy_test, loading checkpoint 2
+            loading_info = {}
+            # if is_sharded:
+            #     load_checkpoint_and_dispatch(
+            #         model,
+            #         index_file,  # TODO: check accelerate
+            #         dtype=mindspore_dtype,
+            #         strict=True,
+            #     )
+            # else:
+            #     state_dict = load_state_dict(model_file, variant=variant)
+            #     model._convert_deprecated_attention_blocks(state_dict)
 
-                model, missing_keys, unexpected_keys, mismatched_keys, error_msgs = cls._load_pretrained_model(
-                    model,
-                    state_dict,
-                    model_file,
-                    pretrained_model_name_or_path,
-                    ignore_mismatched_sizes=ignore_mismatched_sizes,
-                )
+            #     model, missing_keys, unexpected_keys, mismatched_keys, error_msgs = cls._load_pretrained_model(
+            #         model,
+            #         state_dict,
+            #         model_file,
+            #         pretrained_model_name_or_path,
+            #         ignore_mismatched_sizes=ignore_mismatched_sizes,
+            #     )
 
-                loading_info = {
-                    "missing_keys": missing_keys,
-                    "unexpected_keys": unexpected_keys,
-                    "mismatched_keys": mismatched_keys,
-                    "error_msgs": error_msgs,
-                }
+            #     loading_info = {
+            #         "missing_keys": missing_keys,
+            #         "unexpected_keys": unexpected_keys,
+            #         "mismatched_keys": mismatched_keys,
+            #         "error_msgs": error_msgs,
+            #     }
 
         model.register_to_config(_name_or_path=pretrained_model_name_or_path)
 
