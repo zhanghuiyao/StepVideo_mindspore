@@ -44,7 +44,11 @@ if __name__ == "__main__":
         # () -> (b, 128, 128, 16)
         # samples = np.random.randn(2, 128, 128, 16)
 
+        print(f"decode_vae input shape: {samples.shape}")
+
         samples = self.vae_pipeline.decode(samples)
+
+        print(f"decode_vae output shape: {samples.shape}")
 
         return samples
 
@@ -62,6 +66,11 @@ if __name__ == "__main__":
         data = self.caption_pipeline.embedding(prompts)
 
         prompt_embeds, prompt_attention_mask, clip_embedding = Tensor(data['y']), Tensor(data['y_mask']), Tensor(data['clip_embedding'])
+
+        print(f"encode_prompt output shape:")
+        print(f"{prompt_embeds.shape=}")
+        print(f"{prompt_attention_mask.shape=}")
+        print(f"{clip_embedding.shape=}")
 
         return prompt_embeds, clip_embedding, prompt_attention_mask
 
