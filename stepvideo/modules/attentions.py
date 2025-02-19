@@ -1,7 +1,7 @@
 import mindspore as ms
 from mindspore import ops, nn, Tensor, Parameter
 
-from ..mindspore_adapter import scaled_dot_product_attention
+from ..mindspore_adapter.scaled_dot_product_attn import scaled_dot_product_attention
 try:
     from ..mindspore_adapter.ring_attention import ring_attention_op as xFuserLongContextAttention
 except ImportError:
