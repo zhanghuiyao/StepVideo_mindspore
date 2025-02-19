@@ -109,7 +109,7 @@ if __name__ == "__main__":
                 latent_model_input = latent_model_input.to(transformer_dtype)
                 # broadcast to batch dimension in a way that's compatible with ONNX/Core ML
                 
-                timestep = t.broadcast_to(latent_model_input.shape[0]).to(latent_model_input.dtype)
+                timestep = t.broadcast_to((latent_model_input.shape[0],)).to(latent_model_input.dtype)
 
                 noise_pred = self.transformer(
                     hidden_states=latent_model_input,
