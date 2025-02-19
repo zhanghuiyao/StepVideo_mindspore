@@ -47,7 +47,7 @@ python run_single_test.py --model_dir $model_dir --vae_url $url --caption_url $u
 ```shell
 model_dir='./demo/stepfun-ai/stepvideo-t2v_mini'
 
-python test_vae_decode.py --model_dir $model_dir
+python test_vae_decode.py --model_dir $model_dir --ulysses_degree 1
 ```
 
 
