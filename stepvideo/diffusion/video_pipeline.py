@@ -9,6 +9,7 @@ import asyncio
 
 import mindspore as ms
 from mindspore import nn, ops, Tensor, Parameter
+from mindspore.communication.management import get_group_size, get_rank
 
 from mindone.diffusers.pipelines.pipeline_utils import DiffusionPipeline
 from mindone.diffusers.utils import BaseOutput
@@ -16,6 +17,7 @@ from mindone.diffusers.utils import BaseOutput
 from stepvideo.modules.model import StepVideoModel
 from stepvideo.diffusion.scheduler import FlowMatchDiscreteScheduler
 from stepvideo.utils import VideoProcessor
+from stepvideo.parallel import is_distribute
 
 
 def call_api_gen(url, api, port=8080):
@@ -291,10 +293,8 @@ class StepVideoPipeline(DiffusionPipeline):
                 
                 progress_bar.update()
 
-        from mindspore.communication.management import get_group_size, get_rank
-
         # if not torch.distributed.is_initialized() or int(torch.distributed.get_rank())==0:
-        if get_group_size() == 1 or get_rank() == 0:
+        if not is_distribute() or get_group_size() == 1 or get_rank() == 0:
             if not output_type == "latent":
                 video = self.decode_vae(latents)
                 video = self.video_processor.postprocess_video(video, output_file_name=output_file_name, output_type=output_type)

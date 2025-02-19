@@ -8,9 +8,16 @@ from mindspore.communication.management import GlobalComm, init, get_group_size,
 sp_group = None
 sp_size = None
 sp_rank = None
+_is_distribute = False
+
+
+def is_distribute():
+    return _is_distribute
 
 
 def initialize_parall_group(ring_degree=1, ulysses_degree=1):
+
+    global _is_distribute
 
     world_size = 1
     rank_id = 0
@@ -26,6 +33,8 @@ def initialize_parall_group(ring_degree=1, ulysses_degree=1):
             gradients_mean=True,
             device_num=world_size,
         )
+
+        _is_distribute = True
 
     global sp_group
     global sp_size

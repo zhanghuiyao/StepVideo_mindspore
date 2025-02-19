@@ -189,8 +189,7 @@ class FlowMatchDiscreteScheduler(SchedulerMixin, ConfigMixin):
 
         if (
             isinstance(timestep, int)
-            or isinstance(timestep, Tensor)
-            or isinstance(timestep, Tensor)
+            or (isinstance(timestep, Tensor) and timestep.dtype in (ms.int16, ms.int32, ms.int64))
         ):
             raise ValueError(
                 (
