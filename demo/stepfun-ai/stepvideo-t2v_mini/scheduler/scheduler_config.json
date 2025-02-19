@@ -1,0 +1,8 @@
+{
+  "_class_name": "FlowMatchDiscreteScheduler",
+  "_diffusers_version": "0.31.0",
+  "device": null,
+  "num_train_timesteps": 1000,
+  "reverse": false,
+  "solver": "euler"
+}

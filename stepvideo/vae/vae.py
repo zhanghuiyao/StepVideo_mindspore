@@ -17,6 +17,10 @@ from mindspore.communication.management import get_group_size, get_rank
 
 from ..mindspore_adapter.scaled_dot_product_attn import scaled_dot_product_attention
 
+from safetensors import safe_open
+from transformers.utils import is_safetensors_available
+from mindone.safetensors.mindspore import load_file as safe_load_file
+
 
 class Base_group_norm(nn.Cell):
     def __init__(self, norm_layer: nn.GroupNorm, spatial=False):
@@ -997,15 +1001,19 @@ class AutoencoderKL(nn.Cell):
             spatial=spatial
         )
 
-        if model_path is not None:
-            weight_dict = self.init_from_ckpt(model_path)
-        if len(weight_dict) != 0:
-            self.load_from_dict(weight_dict)
+        # FXIME: comment for test
+        # if model_path is not None:
+        #     weight_dict = self.init_from_ckpt(model_path)
+        # if len(weight_dict) != 0:
+        #     self.load_from_dict(weight_dict)
+
         self.convert_channel_last()
 
         self.world_size = world_size
 
     def init_from_ckpt(self, model_path):
+        
+        # original
         # from safetensors import safe_open
         # p = {}
         # with safe_open(model_path, framework="pt", device="cpu") as f:
@@ -1015,11 +1023,44 @@ class AutoencoderKL(nn.Cell):
         #             k = k.replace("decoder.conv_out.", "decoder.conv_out.conv.")
         #         p[k] = tensor
         # return p
-        raise NotImplementedError  # FIXME, init_from_ckpt
 
-    def load_from_dict(self, p):
-        # self.load_state_dict(p)
-        raise NotImplementedError  # FIXME, load_from_dict
+        if model_path.endswith(".safetensors") and is_safetensors_available():
+            # Check format of the archive
+            with safe_open(model_path, framework="np") as f:
+                metadata = f.metadata()
+            if metadata.get("format") not in ["pt", "tf", "flax", "np"]:
+                raise OSError(
+                    f"The safetensors archive passed at {model_path} does not contain the valid metadata. Make sure "
+                    "you save your model with the `save_pretrained` method."
+                )
+            state_dict = safe_load_file(model_path)
+
+            # filter `decoder.conv_out`
+            for k in state_dict.keys().copy():
+                if k.startswith("decoder.conv_out."):
+                    new_k = k.replace("decoder.conv_out.", "decoder.conv_out.conv.")
+                    state_dict[new_k] = state_dict.pop(k)
+            
+            return state_dict
+
+        else:
+            raise NotImplementedError(
+                f"Only supports deserialization of weights file in safetensors format, but got {checkpoint_file}"
+            )
+
+    def load_from_dict(self, state_dict, start_prefix=""):
+
+        from mindone.transformers.modeling_utils import _convert_state_dict
+
+        state_dict_ms = _convert_state_dict(self, state_dict, prefix="")
+
+        local_state = {start_prefix + k: v for k, v in self.parameters_and_names()}
+        for k, v in state_dict.items():
+            if k in local_state:
+                v.set_dtype(local_state[k].dtype)
+            else:
+                pass  # unexpect key keeps origin dtype
+        ms.load_param_into_net(self, state_dict_ms, strict_load=True)
 
     def convert_channel_last(self):
         #Conv2d NCHW->NHWC

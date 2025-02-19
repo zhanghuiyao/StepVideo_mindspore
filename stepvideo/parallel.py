@@ -46,6 +46,11 @@ def initialize_parall_group(ring_degree=1, ulysses_degree=1):
             sp_size = ulysses_degree
             sp_rank = rank_id % ulysses_degree
             sp_group = comm_group
+    else:
+        sp_size = 1
+        sp_rank = 0
+        sp_group = None
+
 
     # dist.init_process_group("nccl")
     # xfuser.core.distributed.init_distributed_environment(

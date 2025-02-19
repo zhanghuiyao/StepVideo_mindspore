@@ -106,9 +106,11 @@ class CaptionPipeline(Resource):
     def embedding(self, prompts, *args, **kwargs):
         # with ms._no_grad():
         try:
-            y, y_mask = self.text_encoder(prompts)
-                
-            clip_embedding, _ = self.clip(prompts)
+            input_ids_1, mask_1 = self.text_encoder.prompts_to_tokens(prompts)  # stepllm tokenizer
+            input_ids_2, mask_2 = self.clip.prompts_to_tokens(prompts)          # hunyuan clip tokenizer
+
+            y, y_mask = self.text_encoder(input_ids_1, mask_1)
+            clip_embedding, _ = self.clip(input_ids_2, mask_2)
             
             len_clip = clip_embedding.shape[1]
 
