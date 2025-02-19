@@ -304,7 +304,7 @@ class STEP1TextEncoder(nn.Cell):
             prompts = [prompts]
         
         txt_tokens = self.text_tokenizer(
-            prompts, max_length=max_length or self.max_length, padding="max_length", truncation=True, return_tensors="pt"
+            prompts, max_length=max_length or self.max_length, padding="max_length", truncation=True, return_tensors="np"
         )
 
         return Tensor(txt_tokens.input_ids), Tensor(txt_tokens.attention_mask)
