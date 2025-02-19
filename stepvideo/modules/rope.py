@@ -26,7 +26,9 @@ class RoPE1D:
         # w/o cache
         inv_freq = 1.0 / (self.base ** (ops.arange(0, D, 2).float() / D))
         t = ops.arange(seq_len, dtype=inv_freq.dtype)
-        freqs = ops.einsum("i,j->ij", t, inv_freq).to(dtype)
+        # freqs = ops.einsum("i,j->ij", t, inv_freq).to(dtype)
+        freqs = (t[:, None] * inv_freq[None, :]).to(dtype)
+
         freqs = ops.cat((freqs, freqs), axis=-1)
         cos = freqs.cos()  # (Seq, Dim)
         sin = freqs.sin()
