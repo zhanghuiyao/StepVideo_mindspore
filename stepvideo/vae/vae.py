@@ -817,12 +817,12 @@ class Upsample3D(nn.Cell):
         if is_split:
             split_size = c // 8
             x_slices = ops.split(x, split_size, axis=1)
-            # x = [ops.interpolate(x, scale_factor=self.scale_factor) for x in x_slices]
-            x = [ops.interpolate(x, size=(int(x.shape[-2]*self.scale_factor), int(x.shape[-1]*self.scale_factor))) for x in x_slices]
+            x = [ops.interpolate(x, scale_factor=self.scale_factor) for x in x_slices]
+            # x = [ops.interpolate(x, size=(int(x.shape[-3]*self.scale_factor), int(x.shape[-2]*self.scale_factor), int(x.shape[-1]*self.scale_factor))) for x in x_slices]
             x = ops.cat(x, axis=1)
         else:
-            # x = ops.interpolate(x, scale_factor=self.scale_factor)
-            x = ops.interpolate(x, size=(int(x.shape[-2]*self.scale_factor), int(x.shape[-1]*self.scale_factor)))
+            x = ops.interpolate(x, scale_factor=self.scale_factor)
+            # x = ops.interpolate(x, size=(int(x.shape[-3]*self.scale_factor), int(x.shape[-2]*self.scale_factor), int(x.shape[-1]*self.scale_factor)))
 
         x = self.conv3d(x, is_init)
         return x
