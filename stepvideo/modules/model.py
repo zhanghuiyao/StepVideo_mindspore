@@ -219,7 +219,7 @@ class StepVideoModel(ModelMixin, ConfigMixin):
         shift, scale = (self.scale_shift_table[None] + embedded_timestep[:, None]).chunk(2, axis=1)
         hidden_states = self.norm_out(hidden_states)
         # Modulation
-        scale = ops.broadcast_to(scale, (bsz * frame,) + scale.shape[1:])
+        scale = ops.broadcast_to(scale[:, None], (bsz, frame) + scale.shape[1:]).view((-1,) + scale.shape[1:])
         hidden_states = hidden_states * (1 + scale) + shift
         hidden_states = self.proj_out(hidden_states)
         
