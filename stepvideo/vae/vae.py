@@ -437,7 +437,7 @@ class CausalConvChannelLast(CausalConv):
     def construct(self, x, is_init=True, residual=None):
         # if self.is_first_run:
         #     self.is_first_run = False
-        #     # self.conv.weight = nn.Parameter(self.conv.weight.permute(0,2,3,4,1).contiguous())
+        #     # self.conv.weight = Parameter(self.conv.weight.permute(0,2,3,4,1).contiguous())
 
         x = ops.pad(x,
             self.time_causal_padding if is_init else self.time_uncausal_padding)

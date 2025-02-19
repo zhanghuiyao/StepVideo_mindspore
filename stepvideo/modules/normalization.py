@@ -22,7 +22,7 @@ class RMSNorm(nn.Cell):
 
         Attributes:
             eps (float): A small value added to the denominator for numerical stability.
-            weight (nn.Parameter): Learnable scaling parameter.
+            weight (Parameter): Learnable scaling parameter.
 
         """
         super().__init__()
@@ -30,7 +30,7 @@ class RMSNorm(nn.Cell):
         
         self.weight = None
         if elementwise_affine:
-            self.weight = nn.Parameter(ops.ones(dim, dtype=dtype))
+            self.weight = Parameter(ops.ones(dim, dtype=dtype))
 
     def _norm(self, x):
         """
