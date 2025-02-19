@@ -25,7 +25,7 @@ class SelfAttention(Attention):
         self.head_dim = head_dim
         self.n_heads = hidden_dim // head_dim
         
-        super().__init__(group=sp_group, head_dim=self.head_dim, head_num=self.n_heads)
+        super().__init__(sp_group=sp_group, head_dim=self.head_dim, head_num=self.n_heads)
 
         self.wqkv = nn.Linear(hidden_dim, hidden_dim*3, bias=bias)
         self.wo = nn.Linear(hidden_dim, hidden_dim, bias=bias)
