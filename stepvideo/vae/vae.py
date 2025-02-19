@@ -114,7 +114,7 @@ class Base_conv3d(nn.Cell):
             return ops.zeros(size, dtype=x.dtype)
         if channel_last:
             x = x.permute(0, 4, 1, 2, 3)  # NDHWC to NCDHW
-        out = ops.conv3d(x, self.conv_layer.weight, self.conv_layer.bias, stride=self.conv_layer.stride, padding=ops_padding)
+        out = ops.conv3d(x, self.conv_layer.weight, self.conv_layer.bias, stride=self.conv_layer.stride, pad_mode="pad", padding=ops_padding)
         if residual is not None:
             if channel_last:
                 residual = residual.permute(0, 4, 1, 2, 3)  # NDHWC to NCDHW
