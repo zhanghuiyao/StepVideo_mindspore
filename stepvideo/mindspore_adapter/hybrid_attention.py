@@ -5,7 +5,7 @@ from mindspore import nn, ops, Tensor, Parameter
 
 from mindone.transformers.mindspore_adapter.attention import FlashAttention2
 
-from all_to_all import SeqAllToAll4D
+from stepvideo.mindspore_adapter.all_to_all import SeqAllToAll4D
 
 
 class LongContextAttention(nn.Cell):
