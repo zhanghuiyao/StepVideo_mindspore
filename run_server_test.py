@@ -20,7 +20,7 @@ if __name__ == "__main__":
         deterministic="ON",
         pynative_synchronize=True,
         memory_optimize_level="O1",
-        max_device_memory="59GB",
+        # max_device_memory="59GB",
         # jit_syntax_level=ms.STRICT,
     )
     
