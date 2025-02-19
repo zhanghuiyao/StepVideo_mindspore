@@ -12,17 +12,20 @@ sp_rank = None
 
 def initialize_parall_group(ring_degree=1, ulysses_degree=1):
 
-    init()
-    world_size = get_group_size()
-    rank_id = get_rank()
-    print(f"init_environment, rank_id: {rank_id}, world_size: {world_size}")
+    world_size = 1
+    rank_id = 0
+    if ring_degree > 1 or ulysses_degree > 1:
+        init()
+        world_size = get_group_size()
+        rank_id = get_rank()
+        print(f"init_environment, rank_id: {rank_id}, world_size: {world_size}")
 
-    ms.reset_auto_parallel_context()
-    ms.set_auto_parallel_context(
-        parallel_mode=ms.ParallelMode.DATA_PARALLEL,
-        gradients_mean=True,
-        device_num=world_size,
-    )
+        ms.reset_auto_parallel_context()
+        ms.set_auto_parallel_context(
+            parallel_mode=ms.ParallelMode.DATA_PARALLEL,
+            gradients_mean=True,
+            device_num=world_size,
+        )
 
     global sp_group
     global sp_size
