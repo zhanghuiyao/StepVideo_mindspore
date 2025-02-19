@@ -298,6 +298,7 @@ class STEP1TextEncoder(nn.Cell):
         text_encoder.set_train(False)
         text_encoder.to(ms.bfloat16)
         text_encoder = auto_mixed_precision(text_encoder, "O2", ms.bfloat16)
+        self.text_encoder = text_encoder
 
     def prompts_to_tokens(self, prompts, max_length=None):
         if type(prompts) is str:
