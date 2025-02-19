@@ -208,7 +208,7 @@ class StepVideoModel(ModelMixin, ConfigMixin):
 
         # embedded_timestep = repeat(embedded_timestep, 'b d -> (b f) d', f=frame).contiguous()
         b, d = embedded_timestep.shape
-        embedded_timestep.view(b, 1, d).broadcast_to(b, frame, d).view(b*frame, d)
+        embedded_timestep.view(b, 1, d).broadcast_to((b, frame, d)).view(b*frame, d)
 
         shift, scale = (self.scale_shift_table[None] + embedded_timestep[:, None]).chunk(2, axis=1)
         hidden_states = self.norm_out(hidden_states)

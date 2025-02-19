@@ -98,8 +98,8 @@ class MultiQueryAttention(nn.Cell):
         if q_per_kv > 1:
             b, s, h, d = xk.shape
             if h == 1:
-                xk = xk.broadcast_to(b, s, q_per_kv, d)
-                xv = xv.broadcast_to(b, s, q_per_kv, d)
+                xk = xk.broadcast_to((b, s, q_per_kv, d))
+                xv = xv.broadcast_to((b, s, q_per_kv, d))
             else:
                 ''' To cover the cases where h > 1, we have
                     the following implementation, which is equivalent to:
