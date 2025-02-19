@@ -105,27 +105,27 @@ class CaptionPipeline(Resource):
  
     def embedding(self, prompts, *args, **kwargs):
         # with ms._no_grad():
-        try:
-            input_ids_1, mask_1 = self.text_encoder.prompts_to_tokens(prompts)  # stepllm tokenizer
-            input_ids_2, mask_2 = self.clip.prompts_to_tokens(prompts)          # hunyuan clip tokenizer
+        # try:
+        input_ids_1, mask_1 = self.text_encoder.prompts_to_tokens(prompts)  # stepllm tokenizer
+        input_ids_2, mask_2 = self.clip.prompts_to_tokens(prompts)          # hunyuan clip tokenizer
 
-            y, y_mask = self.text_encoder(input_ids_1, mask_1)
-            clip_embedding, _ = self.clip(input_ids_2, mask_2)
-            
-            len_clip = clip_embedding.shape[1]
+        y, y_mask = self.text_encoder(input_ids_1, mask_1)
+        clip_embedding, _ = self.clip(input_ids_2, mask_2)
+        
+        len_clip = clip_embedding.shape[1]
 
-            y_mask = ops.pad(y_mask, (len_clip, 0), value=1)   ## pad attention_mask with clip's length 
+        y_mask = ops.pad(y_mask, (len_clip, 0), value=1)   ## pad attention_mask with clip's length 
 
-            data = {
-                'y': y.asnumpy(),
-                'y_mask': y_mask.asnumpy(),
-                'clip_embedding': clip_embedding.to(ms.bfloat16).asnumpy()
-            }
+        data = {
+            'y': y.asnumpy(),
+            'y_mask': y_mask.asnumpy(),
+            'clip_embedding': clip_embedding.to(ms.bfloat16).asnumpy()
+        }
 
-            return data
-        except Exception as err:
-            print(f"{err}")
-            return None
+        return data
+        # except Exception as err:
+        #     print(f"{err}")
+        #     return None
 
 
 
