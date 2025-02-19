@@ -11,7 +11,7 @@ from stepvideo.parallel import initialize_parall_group, get_parallel_group
 
 # for test
 import os
-from .api.call_remote_server import CaptionPipeline, StepVaePipeline
+from api.call_remote_server import CaptionPipeline, StepVaePipeline
 
 
 if __name__ == "__main__":
