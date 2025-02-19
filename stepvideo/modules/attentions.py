@@ -58,6 +58,6 @@ class Attention(nn.Cell):
         # no mask, no causal
     ):
         x = self.hybrid_seq_parallel_attn(
-            None, q,k,v
+            q,k,v
         )
         return x
