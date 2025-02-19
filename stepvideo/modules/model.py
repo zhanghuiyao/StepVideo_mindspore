@@ -16,7 +16,6 @@ from mindspore import nn, ops, Tensor, Parameter
 import os
 import numpy as np
 from typing import Any, Dict, Optional, Union
-from einops import rearrange, repeat
 from stepvideo.parallel import parallel_forward
 from stepvideo.modules.blocks import (
         StepVideoTransformerBlock, 
