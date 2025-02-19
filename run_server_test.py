@@ -55,7 +55,6 @@ if __name__ == "__main__":
         return_dict: bool = True,
     ):
         # 1. Check inputs. Raise error if not correct
-        device = self._execution_device
 
         # 2. Define call parameters
         if prompt is not None and isinstance(prompt, str):
