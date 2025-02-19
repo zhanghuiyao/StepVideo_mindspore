@@ -240,10 +240,10 @@ class StepVideoTransformerBlock(nn.Cell):
     ):
         super().__init__()
         self.dim = dim
-        self.norm1 = nn.LayerNorm(dim, eps=norm_eps)
+        self.norm1 = nn.LayerNorm(dim, epsilon=norm_eps)
         self.attn1 = SelfAttention(dim, attention_head_dim, bias=False, with_rope=True, with_qk_norm=True, attn_type=attention_type)
         
-        self.norm2 = nn.LayerNorm(dim, eps=norm_eps)
+        self.norm2 = nn.LayerNorm(dim, epsilon=norm_eps)
         self.attn2 = CrossAttention(dim, attention_head_dim, bias=False, with_qk_norm=True, attn_type='mindspore')
 
         self.ff = FeedForward(dim=dim, inner_dim=ff_inner_dim, dim_out=dim, bias=ff_bias)
