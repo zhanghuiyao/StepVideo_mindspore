@@ -43,9 +43,13 @@ class LongContextAttention(nn.Cell):
         else:
             raise NotImplementedError
 
-        assert (
-            self.ulysses_pg is not None or self.ring_pg is not None
-        ), f"use set_seq_parallel_pg() first. Now ulysses pg {self.ulysses_pg} and ring pg {self.ring_pg}"
+        # assert (
+        #     self.ulysses_pg is not None or self.ring_pg is not None
+        # ), f"use set_seq_parallel_pg() first. Now ulysses pg {self.ulysses_pg} and ring pg {self.ring_pg}"
+        
+        if self.ulysses_pg is None and self.ring_pg is None:
+            print("warning: ulysses pg and ring sp both is None.")
+
         self.scatter_idx = scatter_idx
         self.gather_idx = gather_idx
 
