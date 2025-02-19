@@ -289,7 +289,7 @@ class CausalConv(nn.Cell):
             kwargs["has_bias"] = True
         if "pad_mode" not in kwargs:
             kwargs["pad_mode"] = "pad"
-        self.conv = nn.Conv3d(chan_in, chan_out, tuple(kernel_size), stride=self.stride, dilation=self.dilation, **kwargs)
+        self.conv = nn.Conv3d(chan_in, chan_out, kernel_size, stride=self.stride, dilation=self.dilation, **kwargs)
         # self.is_first_run = True
 
     def construct(self, x, is_init=True, residual=None):
@@ -464,11 +464,12 @@ class CausalConvAfterNorm(CausalConv):
         if "pad_mode" not in kwargs:
             kwargs["pad_mode"] = "pad"
 
+        kernel_size = tuple(kernel_size) if isinstance(kernel_size, list) else kernel_size
         if self.time_causal_padding == (1, 1, 1, 1, 2, 0):
             _padding = (0, 0, 1, 1, 1, 1)  #(0, 1, 1)
-            self.conv = nn.Conv3d(chan_in, chan_out, tuple(kernel_size), stride=self.stride, dilation=self.dilation, padding=_padding, **kwargs)
+            self.conv = nn.Conv3d(chan_in, chan_out, kernel_size, stride=self.stride, dilation=self.dilation, padding=_padding, **kwargs)
         else:
-            self.conv = nn.Conv3d(chan_in, chan_out, tuple(kernel_size), stride=self.stride, dilation=self.dilation, **kwargs)
+            self.conv = nn.Conv3d(chan_in, chan_out, kernel_size, stride=self.stride, dilation=self.dilation, **kwargs)
         # self.is_first_run = True
 
         self.base_conv3d_channel_last = Base_conv3d_channel_last(self.conv)
