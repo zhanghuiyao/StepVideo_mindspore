@@ -306,7 +306,7 @@ class PatchEmbed(nn.Cell):
         self.layer_norm = layer_norm
 
         self.proj = nn.Conv2d(
-            in_channels, embed_dim, kernel_size=(patch_size, patch_size), stride=patch_size, bias=bias
+            in_channels, embed_dim, kernel_size=(patch_size, patch_size), stride=patch_size, has_bias=bias, pad_mode="pad",
         )
 
     def construct(self, latent):

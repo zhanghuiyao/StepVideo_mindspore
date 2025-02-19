@@ -58,7 +58,7 @@ class FlowMatchDiscreteScheduler(SchedulerMixin, ConfigMixin):
         sigmas = ops.linspace(1, 0, num_train_timesteps + 1)
 
         if not reverse:
-            sigmas = sigmas.flip(0)
+            sigmas = sigmas.flip((0,))
 
         self.sigmas = sigmas
         # the value fed to model
