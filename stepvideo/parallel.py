@@ -102,7 +102,7 @@ def parallel_forward(fn_):
 def sp_all_gather(input_: Tensor, dim: int = 0):
     
     # w/o sp
-    if get_parallel_group() is None:
+    if get_sp_group() is None:
         return input_
 
     # w/ sp

@@ -36,7 +36,7 @@ if __name__ == "__main__":
         caption_url = args.caption_url,
     )
 
-    def __call__(
+    def new_call_fn(
         self,
         prompt: Union[str, List[str]] = None,
         height: int = 544,
@@ -144,12 +144,12 @@ if __name__ == "__main__":
 
 
     import types
-    pipeline.__call__ = types.MethodType(__call__, pipeline)
+    pipeline.new_call = types.MethodType(new_call_fn, pipeline)
 
 
     args.infer_steps = 5  # for test
     prompt = args.prompt
-    videos = pipeline(
+    videos = pipeline.new_call(
         prompt=prompt, 
         num_frames=args.num_frames, 
         height=args.height, 
