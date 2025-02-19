@@ -104,7 +104,7 @@ class Base_conv3d(nn.Cell):
         
         # padding format is diff between nn.Conv3d and ops.conv3d
         nn_padding = self.conv_layer.padding
-        if len(nn_padding) == 6:
+        if isinstance(nn_padding, tuple) and len(nn_padding) == 6:
             ops_padding = (nn_padding[0], nn_padding[2], nn_padding[4])
         else:
             ops_padding = nn_padding

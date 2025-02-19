@@ -22,7 +22,7 @@ from stepvideo.parallel import is_distribute
 
 def call_api_gen(url, api, port=8080):
     # url =f"http://{url}:{port}/{api}-api"
-    url =f"http://{url}/{api}-api"
+    url =f"{url}/{api}-api"
     import aiohttp
     async def _fn(samples, *args, **kwargs):
         if api=='vae':
