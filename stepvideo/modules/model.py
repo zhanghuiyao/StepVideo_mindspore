@@ -220,6 +220,7 @@ class StepVideoModel(ModelMixin, ConfigMixin):
         hidden_states = self.norm_out(hidden_states)
         # Modulation
         scale = ops.broadcast_to(scale[:, None], (bsz, frame) + scale.shape[1:]).view((-1,) + scale.shape[1:])
+        shift = ops.broadcast_to(shift[:, None], (bsz, frame) + shift.shape[1:]).view((-1,) + shift.shape[1:])
         hidden_states = hidden_states * (1 + scale) + shift
         hidden_states = self.proj_out(hidden_states)
         
