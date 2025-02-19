@@ -78,7 +78,10 @@ if __name__ == "__main__":
         prompt_embeds = prompt_embeds.to(transformer_dtype)
         prompt_attention_mask = prompt_attention_mask.to(transformer_dtype)
         prompt_embeds_2 = prompt_embeds_2.to(transformer_dtype)
-        print("")
+        print("="* 100 + "\n" + f"get encode_prompt from server success.")
+        print(f"{prompt_embeds.shape=}")
+        print(f"{prompt_embeds_2.shape=}")
+        print(f"{prompt_attention_mask.shape=}")
 
         # 4. Prepare timesteps
         self.scheduler.set_timesteps(

@@ -67,8 +67,9 @@ if __name__ == "__main__":
 
     # replace method for test, 
     # test shape: (128, 128, 16), official shape: 544px992px136f
-    pipeline.decode_vae = decode_vae
-    pipeline.encode_prompt = encode_prompt
+    import types
+    pipeline.decode_vae = types.MethodType(decode_vae, pipeline)
+    pipeline.encode_prompt = types.MethodType(encode_prompt, pipeline)
 
     pipeline.caption = CaptionPipeline(
         llm_dir=os.path.join(args.model_dir, "step_llm"), 
