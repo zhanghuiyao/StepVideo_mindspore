@@ -119,7 +119,7 @@ class StepVideoModel(ModelMixin, ConfigMixin):
     # FIXME: encoder_hidden_states shape
     def prepare_attn_mask(self, encoder_attention_mask, encoder_hidden_states, q_seqlen):
         kv_seqlens = encoder_attention_mask.sum(axis=1).int()
-        mask = ops.zeros([len(kv_seqlens), q_seqlen, kv_seqlens.max(kv_seqlens)], dtype=ms.bool_)
+        mask = ops.zeros([len(kv_seqlens), q_seqlen, int(kv_seqlens.max())], dtype=ms.bool_)
         encoder_hidden_states = encoder_hidden_states[:,: kv_seqlens.max()]  # FIXME: dynamic shape
         for i, kv_len in enumerate(kv_seqlens):
             mask[i, :, :kv_len] = 1
