@@ -72,14 +72,14 @@ ACTIVATION_FUNCTIONS = {
 }
 
 
-def get_activation(act_fn: str) -> nn.Module:
+def get_activation(act_fn: str) -> nn.Cell:
     """Helper function to get activation function from string.
 
     Args:
         act_fn (str): Name of activation function.
 
     Returns:
-        nn.Module: Activation function.
+        nn.Cell: Activation function.
     """
 
     act_fn = act_fn.lower()
@@ -256,7 +256,7 @@ class PixArtAlphaCombinedTimestepSizeEmbeddings(nn.Cell):
 
 
 
-class AdaLayerNormSingle(nn.Module):
+class AdaLayerNormSingle(nn.Cell):
     r"""
         Norm layer adaptive layer norm single (adaLN-single).
 
