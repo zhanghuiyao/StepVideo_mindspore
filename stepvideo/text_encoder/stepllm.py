@@ -12,6 +12,7 @@
 # ==============================================================================
 import os
 import json
+import inspect
 from typing import Optional
 
 import mindspore as ms
@@ -308,7 +309,6 @@ class STEP1TextEncoder(nn.Cell):
 
         return Tensor(txt_tokens.input_ids), Tensor(txt_tokens.attention_mask)
 
-
     # @no_grad
     def construct(self, input_ids, attention_mask=None, with_mask=True):
         # with no_grad(), autocast(dtype=ms.bfloat16):
@@ -320,3 +320,27 @@ class STEP1TextEncoder(nn.Cell):
         y_mask = attention_mask
         
         return ops.stop_gradient(y.transpose(0,1)), ops.stop_gradient(y_mask)
+
+
+    def to(self, dtype):
+        module_names, _ = self._get_signature_keys(self)
+        modules = [getattr(self, n, None) for n in module_names]
+        modules = [m for m in modules if isinstance(m, nn.Cell)]
+        for module in modules:
+            module.to(dtype)
+        return self
+
+    @classmethod
+    def _get_signature_keys(cls, obj):
+        parameters = inspect.signature(obj.__init__).parameters
+        required_parameters = {k: v for k, v in parameters.items() if v.default == inspect._empty}
+        optional_parameters = set({k for k, v in parameters.items() if v.default != inspect._empty})
+        expected_modules = set(required_parameters.keys()) - {"self"}
+
+        optional_names = list(optional_parameters)
+        for name in optional_names:
+            if name in cls._optional_components:
+                expected_modules.add(name)
+                optional_parameters.remove(name)
+
+        return expected_modules, optional_parameters
