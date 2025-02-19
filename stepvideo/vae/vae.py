@@ -352,7 +352,7 @@ class ConvPixelShuffleUpSampleLayer3D(nn.Cell):
 
     @staticmethod
     def pixel_shuffle_3d(x: Tensor, factor: int) -> Tensor:
-        batch_size, channels, depth, height, width = x.size()
+        batch_size, channels, depth, height, width = x.shape
         new_channels = channels // (factor ** 3)
         new_depth = depth * factor
         new_height = height * factor
@@ -960,7 +960,7 @@ class DiagonalGaussianDistribution(object):
                 self.mean,
                 dtype=self.parameters.dtype)
         if rms_norm_mean:
-            self.mean = rms_norm(self.mean, self.mean.size()[1:])
+            self.mean = rms_norm(self.mean, self.mean.shape[1:])
         self.only_return_mean = only_return_mean
 
     def sample(self, generator=None):
@@ -1075,7 +1075,7 @@ class AutoencoderKL(nn.Cell):
         pass
 
     def naive_encode(self, x, is_init_image=True):
-        b, l, c, h, w = x.size()
+        b, l, c, h, w = x.shape
         # x = rearrange(x, 'b l c h w -> b c l h w').contiguous()
         x = x.swapaxes(1, 2)
         z = self.encoder(x, l, True) # 下采样[1, 4, 8, 16, 16]
@@ -1129,8 +1129,8 @@ class AutoencoderKL(nn.Cell):
     def mix(self, x):
         remain_scale = 0.6
         mix_scale = 1. - remain_scale
-        front = slice(self.frame_len - 1, x.size(1) - 1, self.frame_len)
-        back = slice(self.frame_len, x.size(1), self.frame_len)
+        front = slice(self.frame_len - 1, x.shape[1] - 1, self.frame_len)
+        back = slice(self.frame_len, x.shape[1], self.frame_len)
         x[:, back] = x[:, back] * remain_scale + x[:, front] * mix_scale
         x[:, front] = x[:, front] * remain_scale + x[:, back] * mix_scale
         return x
