@@ -128,24 +128,6 @@ if __name__ == "__main__":
                 
                 progress_bar.update()
 
-        from mindspore.communication.management import get_group_size, get_rank
-
-        # if not torch.distributed.is_initialized() or int(torch.distributed.get_rank())==0:
-        if get_group_size() == 1 or get_rank() == 0:
-            if not output_type == "latent":
-                video = self.decode_vae(latents)
-                video = self.video_processor.postprocess_video(video, output_file_name=output_file_name, output_type=output_type)
-            else:
-                video = latents
-
-            # Offload all models
-            # self.maybe_free_model_hooks()
-
-            if not return_dict:
-                return (video, )
-
-            return StepVideoPipelineOutput(video=video)
-        
 
     
     prompt = args.prompt

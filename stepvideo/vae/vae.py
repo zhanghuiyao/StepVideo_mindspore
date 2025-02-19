@@ -760,7 +760,8 @@ class Res3DBlockUpsample(nn.Cell):
 
         self.base_group_norm_1 = Base_group_norm(self.norm1, spatial=spatial)
         self.base_group_norm_2 = Base_group_norm(self.norm2, spatial=spatial)
-        self.base_group_norm_3 = Base_group_norm(self.norm3, spatial=spatial)
+        if num_filters != input_filters or down_sampling:
+            self.base_group_norm_3 = Base_group_norm(self.norm3, spatial=spatial)
 
     def construct(self, x, is_init=False):
         x = x.permute(0,2,3,4,1)
