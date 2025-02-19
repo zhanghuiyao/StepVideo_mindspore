@@ -20,7 +20,7 @@ def parsed_args():
     parser.add_argument('--clip_dir', type=str, default='hunyuan_clip')
     parser.add_argument('--llm_dir', type=str, default='step_llm')
     parser.add_argument('--vae_dir', type=str, default='vae')
-    parser.add_argument('--port', type=str, default='8080')
+    parser.add_argument('--port', type=str, default=None) #'8080'
     args = parser.parse_args()
     return args
 
