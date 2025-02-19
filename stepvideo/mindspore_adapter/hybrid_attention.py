@@ -2,6 +2,7 @@ from typing import Any, Tuple
 
 import mindspore as ms
 from mindspore import nn, ops, Tensor, Parameter
+from mindspore.communication.management import get_group_size
 
 from mindone.transformers.mindspore_adapter.attention import FlashAttention2
 
@@ -33,13 +34,19 @@ class LongContextAttention(nn.Cell):
         self.ring_pg = ring_pg
         self.ulysses_pg = ulysses_pg
 
+        sp_size = 1
+        if ulysses_pg is not None:
+            sp_size = get_group_size(ulysses_pg)
+
+            assert head_num % sp_size == 0, f"unavailable {sp_size=} and {head_num=}"
+
         if ring_pg is not None:
             raise NotImplementedError
         if attn_type not in ["fa",]:
             raise NotImplementedError
 
         if attn_type == "fa":
-            self.fa_attn_fn = FlashAttention2(head_dim=head_dim, head_num=head_num, attention_dropout=0.0, input_layout="BNSD", dtype=ms.bfloat16)
+            self.fa_attn_fn = FlashAttention2(head_dim=head_dim, head_num=head_num//sp_size, attention_dropout=0.0, input_layout="BNSD", dtype=ms.bfloat16)
         else:
             raise NotImplementedError
 
