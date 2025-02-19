@@ -32,4 +32,4 @@ class FlashSelfAttention(FlashAttention2):
         # BNSD -> BSND
         output = output.swapaxes(1, 2)
 
-        return output    
+        return output

@@ -21,11 +21,12 @@ from stepvideo.modules.normalization import RMSNorm
 
 
 class SelfAttention(Attention):
-    def __init__(self, hidden_dim, head_dim, bias=False, with_rope=True, with_qk_norm=True, attn_type='mindspore'):
-        super().__init__()
+    def __init__(self, hidden_dim, head_dim, bias=False, with_rope=True, with_qk_norm=True, attn_type='mindspore', sp_group: str = None):
         self.head_dim = head_dim
         self.n_heads = hidden_dim // head_dim
         
+        super().__init__(group=sp_group, head_dim=self.head_dim, head_num=self.n_heads)
+
         self.wqkv = nn.Linear(hidden_dim, hidden_dim*3, bias=bias)
         self.wo = nn.Linear(hidden_dim, hidden_dim, bias=bias)
         
@@ -86,11 +87,13 @@ class SelfAttention(Attention):
     
     
 class CrossAttention(Attention):
-    def __init__(self, hidden_dim, head_dim, bias=False, with_qk_norm=True, attn_type='mindspore'):
+    def __init__(self, hidden_dim, head_dim, bias=False, with_qk_norm=True, attn_type='mindspore', sp_group: str = None):
         super().__init__()
         self.head_dim = head_dim
         self.n_heads = hidden_dim // head_dim
         
+        super().__init__(group=sp_group, head_dim=self.head_dim, head_num=self.n_heads)
+
         self.wq = nn.Linear(hidden_dim, hidden_dim, bias=bias)
         self.wkv = nn.Linear(hidden_dim, hidden_dim*2, bias=bias)
         self.wo = nn.Linear(hidden_dim, hidden_dim, bias=bias)
@@ -236,15 +239,16 @@ class StepVideoTransformerBlock(nn.Cell):
         norm_eps: float = 1e-5,
         ff_inner_dim: Optional[int] = None,
         ff_bias: bool = False,
-        attention_type: str = 'parallel'
+        attention_type: str = 'parallel',
+        sp_group: str = None,
     ):
         super().__init__()
         self.dim = dim
         self.norm1 = nn.LayerNorm([dim], epsilon=norm_eps)
-        self.attn1 = SelfAttention(dim, attention_head_dim, bias=False, with_rope=True, with_qk_norm=True, attn_type=attention_type)
+        self.attn1 = SelfAttention(dim, attention_head_dim, bias=False, with_rope=True, with_qk_norm=True, attn_type=attention_type, sp_group=sp_group)
         
         self.norm2 = nn.LayerNorm([dim], epsilon=norm_eps)
-        self.attn2 = CrossAttention(dim, attention_head_dim, bias=False, with_qk_norm=True, attn_type='mindspore')
+        self.attn2 = CrossAttention(dim, attention_head_dim, bias=False, with_qk_norm=True, attn_type='mindspore', sp_group=sp_group)
 
         self.ff = FeedForward(dim=dim, inner_dim=ff_inner_dim, dim_out=dim, bias=ff_bias)
 

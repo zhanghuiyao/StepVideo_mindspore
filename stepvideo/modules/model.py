@@ -16,7 +16,7 @@ from mindspore import nn, ops, Tensor, Parameter
 import os
 import numpy as np
 from typing import Any, Dict, Optional, Union
-from stepvideo.parallel import parallel_forward
+from stepvideo.parallel import parallel_forward, get_sp_group
 from stepvideo.modules.blocks import (
         StepVideoTransformerBlock, 
         PatchEmbed
@@ -54,6 +54,11 @@ class StepVideoModel(ModelMixin, ConfigMixin):
     ):
         super().__init__()
 
+        # get sp_group from global var
+        sp_group = None
+        if attention_type == "parallel":
+            sp_group = get_sp_group()
+
         # Set some common variables used across the board.
         self.inner_dim = self.config.num_attention_heads * self.config.attention_head_dim
         self.out_channels = in_channels if out_channels is None else out_channels
@@ -71,7 +76,8 @@ class StepVideoModel(ModelMixin, ConfigMixin):
                 StepVideoTransformerBlock(
                     dim=self.inner_dim,
                     attention_head_dim=self.config.attention_head_dim,
-                    attention_type=attention_type
+                    attention_type=attention_type,
+                    sp_group=sp_group
                 )
                 for _ in range(self.config.num_layers)
             ]
