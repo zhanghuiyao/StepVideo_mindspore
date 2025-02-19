@@ -101,12 +101,20 @@ class Base_conv3d(nn.Cell):
         self.conv_layer = conv_layer
 
     def construct(self, x, channel_last=False, residual=None, only_return_output=False):
+        
+        # padding format is diff between nn.Conv3d and ops.conv3d
+        nn_padding = self.conv_layer.padding
+        if len(nn_padding) == 6:
+            ops_padding = (nn_padding[0], nn_padding[1], nn_padding[2])
+        else:
+            ops_padding = nn_padding
+        
         if only_return_output:
-            size = cal_outsize(x.shape, self.conv_layer.weight.shape, self.conv_layer.stride, self.conv_layer.padding)
+            size = cal_outsize(x.shape, self.conv_layer.weight.shape, self.conv_layer.stride, padding=ops_padding)
             return ops.zeros(size, dtype=x.dtype)
         if channel_last:
             x = x.permute(0, 4, 1, 2, 3)  # NDHWC to NCDHW
-        out = ops.conv3d(x, self.conv_layer.weight, self.conv_layer.bias, stride=self.conv_layer.stride, padding=self.conv_layer.padding)
+        out = ops.conv3d(x, self.conv_layer.weight, self.conv_layer.bias, stride=self.conv_layer.stride, padding=ops_padding)
         if residual is not None:
             if channel_last:
                 residual = residual.permute(0, 4, 1, 2, 3)  # NDHWC to NCDHW
