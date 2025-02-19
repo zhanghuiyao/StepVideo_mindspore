@@ -71,11 +71,11 @@ if __name__ == "__main__":
     pipeline.encode_prompt = encode_prompt
 
     pipeline.caption = CaptionPipeline(
-        llm_dir=os.path.join(args.model_dir, args.llm_dir), 
-        clip_dir=os.path.join(args.model_dir, args.clip_dir)
+        llm_dir=os.path.join(args.model_dir, "step_llm"), 
+        clip_dir=os.path.join(args.model_dir, "hunyuan_clip")
     )
     pipeline.vae = StepVaePipeline(
-        vae_dir=os.path.join(args.model_dir, args.vae_dir)
+        vae_dir=os.path.join(args.model_dir, "vae")
     )
 
 
