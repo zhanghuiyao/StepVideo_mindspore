@@ -465,7 +465,8 @@ class CausalConvAfterNorm(CausalConv):
             kwargs["pad_mode"] = "pad"
 
         if self.time_causal_padding == (1, 1, 1, 1, 2, 0):
-            self.conv = nn.Conv3d(chan_in, chan_out, kernel_size, stride=self.stride, dilation=self.dilation, padding=(0, 1, 1), **kwargs)
+            _padding = (0, 0, 1, 1, 1, 1)  #(0, 1, 1)
+            self.conv = nn.Conv3d(chan_in, chan_out, kernel_size, stride=self.stride, dilation=self.dilation, padding=_padding, **kwargs)
         else:
             self.conv = nn.Conv3d(chan_in, chan_out, kernel_size, stride=self.stride, dilation=self.dilation, **kwargs)
         # self.is_first_run = True
