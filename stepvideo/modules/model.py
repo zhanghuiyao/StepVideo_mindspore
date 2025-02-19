@@ -49,7 +49,7 @@ class StepVideoModel(ModelMixin, ConfigMixin):
         norm_elementwise_affine: bool = False,
         norm_eps: float = 1e-6,
         use_additional_conditions: Optional[bool] = False,
-        caption_channels: Optional[int]|list|tuple = [6144, 1024],
+        caption_channels: Optional[Union[int, list, tuple]] = [6144, 1024],
         attention_type: Optional[str] = "parallel",
     ):
         super().__init__()
