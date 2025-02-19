@@ -107,7 +107,7 @@ class MultiQueryAttention(nn.Cell):
                         xv = xv.repeat_interleave(q_per_kv, dim=-2)
                     but can avoid calling aten::item() that involves cpu.
                 '''
-                # idx = torch.arange(q_per_kv * h, device=xk.device).reshape(q_per_kv, -1).permute(1, 0).flatten()
+                # idx = torch.arange(q_per_kv * h).reshape(q_per_kv, -1).permute(1, 0).flatten()
                 # xk = torch.index_select(xk.repeat(1, 1, q_per_kv, 1), 2, idx).contiguous()
                 # xv = torch.index_select(xv.repeat(1, 1, q_per_kv, 1), 2, idx).contiguous()
 

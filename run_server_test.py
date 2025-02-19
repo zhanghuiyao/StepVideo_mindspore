@@ -78,6 +78,7 @@ if __name__ == "__main__":
         prompt_embeds = prompt_embeds.to(transformer_dtype)
         prompt_attention_mask = prompt_attention_mask.to(transformer_dtype)
         prompt_embeds_2 = prompt_embeds_2.to(transformer_dtype)
+        print("")
 
         # 4. Prepare timesteps
         self.scheduler.set_timesteps(

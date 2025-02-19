@@ -964,7 +964,6 @@ class DiagonalGaussianDistribution(object):
         self.only_return_mean = only_return_mean
 
     def sample(self, generator=None):
-        # make sure sample is on the same device
         # as the parameters and has same dtype
         sample = ops.randn(self.mean.shape)
         sample = sample.to(dtype=self.parameters.dtype)

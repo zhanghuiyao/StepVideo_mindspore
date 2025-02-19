@@ -56,7 +56,7 @@ class StepVideoPipeline(DiffusionPipeline):
     Pipeline for text-to-video generation using StepVideo.
 
     This model inherits from [`DiffusionPipeline`]. Check the superclass documentation for the generic methods
-    implemented for all pipelines (downloading, saving, running on a particular device, etc.).
+    implemented for all pipelines (downloading, saving, running, etc.).
 
     Args:
         transformer ([`StepVideoModel`]):
@@ -219,7 +219,6 @@ class StepVideoPipeline(DiffusionPipeline):
         """
 
         # 1. Check inputs. Raise error if not correct
-        device = self._execution_device
 
         # 2. Define call parameters
         if prompt is not None and isinstance(prompt, str):
