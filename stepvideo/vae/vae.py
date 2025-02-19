@@ -877,7 +877,7 @@ class VideoDecoder(nn.Cell):
             block_out = ch * ch_mult[i_level]
             for i_block in range(self.num_res_blocks + 1):
                 block.append(
-                    Resnet3DBlock(in_channels=block_in, out_channels=block_out, temb_channels=temb_ch))
+                    Resnet3DBlock(in_channels=block_in, out_channels=block_out, temb_channels=temb_ch, spatial=spatial))
                 block_in = block_out
             up = nn.Cell()
             up.block = block
