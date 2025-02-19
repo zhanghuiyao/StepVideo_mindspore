@@ -47,15 +47,15 @@ class StepVaePipeline(Resource):
  
     def decode(self, samples, *args, **kwargs):
         # with ms._no_grad():    
-        try:
-            dtype = next(self.vae.get_parameters()).dtype
-            samples = self.vae.decode(samples.to(dtype) / self.scale_factor)
-            if hasattr(samples,'sample'):
-                samples = samples.sample
-            return samples
-        except:
-            # empty_cache()
-            return None
+        # try:
+        dtype = next(self.vae.get_parameters()).dtype
+        samples = self.vae.decode(samples.to(dtype) / self.scale_factor)
+        if hasattr(samples,'sample'):
+            samples = samples.sample
+        return samples
+        # except:
+        #     # empty_cache()
+        #     return None
 
 
 lock = threading.Lock()
