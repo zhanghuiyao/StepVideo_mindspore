@@ -85,7 +85,7 @@ class Base_conv2d(nn.Cell):
     def construct(self, x, channel_last=False, residual=None):
         if channel_last:
             x = x.permute(0, 3, 1, 2)  # NHWC to NCHW
-        out = ops.conv2d(x, self.conv_layer.weight, self.conv_layer.bias, stride=self.conv_layer.stride, padding=self.conv_layer.padding)
+        out = ops.conv2d(x, self.conv_layer.weight, self.conv_layer.bias, stride=self.conv_layer.stride, pad_mode="pad", padding=self.conv_layer.padding)
         if residual is not None:
             if channel_last:
                 residual = residual.permute(0, 3, 1, 2)  # NHWC to NCHW
