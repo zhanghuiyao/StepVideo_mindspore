@@ -40,6 +40,16 @@ python run_single_test.py --model_dir $model_dir --vae_url $url --caption_url $u
 ```
 
 
+```shell
+parallel=4
+url='127.0.0.1'
+model_dir='./demo/stepfun-ai/stepvideo-t2v_mini'
+
+ASCEND_RT_VISIBLE_DEVICES=4,5,6,7 msrun --bind_core=True --worker_num=$parallel --local_worker_num=$parallel --master_port=9000 --log_dir=outputs/parallel_logs python \
+run_single_test.py --model_dir $model_dir --vae_url $url --caption_url $url  --ulysses_degree $parallel --prompt "一名宇航员在月球上发现一块石碑，上面印有“MindSpore”字样，闪闪发光" --infer_steps 5  --cfg_scale 9.0 --time_shift 13.0 --num_frames 16 --height 128 --width 128
+```
+
+
 #### 1.1. test vae decode
 
 ```shell
