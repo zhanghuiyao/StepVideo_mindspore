@@ -78,7 +78,7 @@ class StepVideoModel(ModelMixin, ConfigMixin):
         )
 
         # 3. Output blocks.
-        self.norm_out = nn.LayerNorm(self.inner_dim, epsilon=norm_eps)
+        self.norm_out = nn.LayerNorm([self.inner_dim], epsilon=norm_eps)
         if not norm_elementwise_affine:
             self.norm_out.gamma.requires_grad = False
             self.norm_out.beta.requires_grad = False
@@ -97,7 +97,7 @@ class StepVideoModel(ModelMixin, ConfigMixin):
             caption_channel, clip_channel = self.config.caption_channels
             self.clip_projection = nn.Linear(clip_channel, self.inner_dim) 
 
-        self.caption_norm = nn.LayerNorm(caption_channel, epsilon=norm_eps)
+        self.caption_norm = nn.LayerNorm([caption_channel], epsilon=norm_eps)
         if not norm_elementwise_affine:
             self.caption_norm.gamma.requires_grad = False
             self.caption_norm.beta.requires_grad = False
