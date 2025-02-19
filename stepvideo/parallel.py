@@ -100,6 +100,12 @@ def parallel_forward(fn_):
 
 
 def sp_all_gather(input_: Tensor, dim: int = 0):
+    
+    # w/o sp
+    if get_parallel_group() is None:
+        return input_
+
+    # w/ sp
     world_size = get_sequence_parallel_world_size()
     input_size = input_.shape
 
