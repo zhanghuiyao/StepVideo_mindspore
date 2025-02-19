@@ -803,7 +803,7 @@ class Upsample3D(nn.Cell):
     ):
         super().__init__()
 
-        self.scale_factor = scale_factor
+        self.scale_factor = float(scale_factor)
         self.conv3d = Res3DBlockUpsample(input_filters=in_channels,
                                          num_filters=in_channels,
                                          down_sampling_stride=(1, 1, 1),
