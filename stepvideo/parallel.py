@@ -122,7 +122,7 @@ def sp_all_gather(input_: Tensor, dim: int = 0):
     
     dim = -2
     if dim < 0:
-        dim += output.ndim()
+        dim += output.ndim
     if dim != 0:
         _shape = [world_size, input_size[0]//world_size, ] + input_size[1:]
         output_tensor = output_tensor.reshape(_shape)
