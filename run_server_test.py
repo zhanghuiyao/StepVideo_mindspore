@@ -3,7 +3,7 @@ import mindspore as ms
 from stepvideo.diffusion.video_pipeline import StepVideoPipeline
 from stepvideo.config import parse_args
 from stepvideo.utils import setup_seed
-from stepvideo.parallel import initialize_parall_group, get_parallel_group
+from stepvideo.parallel import initialize_parall_group
 
 
 # for test
@@ -25,8 +25,6 @@ if __name__ == "__main__":
     )
     
     initialize_parall_group(ring_degree=args.ring_degree, ulysses_degree=args.ulysses_degree)
-    
-    # local_rank = get_parallel_group().local_rank
     
     setup_seed(args.seed)
         
@@ -137,9 +135,8 @@ if __name__ == "__main__":
         print("="* 100 + "\n" + f"Step3. get video from vae server success.")
         print(f"{video.shape=}")
 
-        video = self.video_processor.postprocess_video(video, output_file_name=output_file_name, output_type=output_type)
+        self.video_processor.postprocess_video(video, output_file_name=output_file_name, output_type=output_type)
         print("="* 100 + "\n" + f"Step4. save video success.")
-        print(f"{video.shape=}")
 
 
     import types

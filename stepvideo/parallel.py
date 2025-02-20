@@ -197,10 +197,6 @@ def bak_initialize_parall_group(ring_degree=1, ulysses_degree=1):
     # )
 
 
-def get_parallel_group():
-    # return xfuser.core.distributed.get_world_group()
-    return get_group_size()
-
 def get_sequence_parallel_world_size():
     # return xfuser.core.distributed.parallel_state.get_sequence_parallel_world_size()
     return sp_size

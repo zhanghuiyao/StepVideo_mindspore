@@ -3,7 +3,7 @@ import mindspore as ms
 from stepvideo.diffusion.video_pipeline import StepVideoPipeline
 from stepvideo.config import parse_args
 from stepvideo.utils import setup_seed
-from stepvideo.parallel import initialize_parall_group, get_parallel_group
+from stepvideo.parallel import initialize_parall_group
 
 
 if __name__ == "__main__":
@@ -15,13 +15,11 @@ if __name__ == "__main__":
         deterministic="ON",
         pynative_synchronize=True,
         memory_optimize_level="O1",
-        max_device_memory="59GB",
+        # max_device_memory="59GB",
         # jit_syntax_level=ms.STRICT,
     )
     
     initialize_parall_group(ring_degree=args.ring_degree, ulysses_degree=args.ulysses_degree)
-    
-    # local_rank = get_parallel_group().local_rank
     
     setup_seed(args.seed)
         
@@ -30,8 +28,7 @@ if __name__ == "__main__":
         vae_url = args.vae_url,
         caption_url = args.caption_url,
     )
-    
-    
+
     prompt = args.prompt
     videos = pipeline(
         prompt=prompt, 
