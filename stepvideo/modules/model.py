@@ -11,7 +11,7 @@
 # copies or substantial portions of the Software.
 # ==============================================================================
 import mindspore as ms
-from mindspore import nn, ops, Tensor, Parameter
+from mindspore import nn, ops, Tensor, Parameter, mint
 
 import os
 import numpy as np
@@ -241,7 +241,7 @@ class StepVideoModel(ModelMixin, ConfigMixin):
     # FIXME: encoder_hidden_states shape
     def prepare_attn_mask(self, encoder_attention_mask, encoder_hidden_states, q_seqlen):
         kv_seqlens = encoder_attention_mask.sum(axis=1).int()
-        mask = ops.zeros([len(kv_seqlens), q_seqlen, int(kv_seqlens.max())], dtype=ms.bool_)
+        mask = mint.zeros([len(kv_seqlens), q_seqlen, int(kv_seqlens.max())], dtype=ms.bool_)
         encoder_hidden_states = encoder_hidden_states[:,: kv_seqlens.max()]  # FIXME: dynamic shape
         for i, kv_len in enumerate(kv_seqlens):
             mask[i, :, :kv_len] = 1
@@ -330,7 +330,7 @@ class StepVideoModel(ModelMixin, ConfigMixin):
         # if encoder_hidden_states_2 is not None and hasattr(self, 'clip_projection'):
         if encoder_hidden_states_2 is not None and self.clip_projection is not None:
             clip_embedding = self.clip_projection(encoder_hidden_states_2)
-            encoder_hidden_states = ops.cat([clip_embedding, encoder_hidden_states], axis=1)
+            encoder_hidden_states = mint.cat([clip_embedding, encoder_hidden_states], dim=1)
 
         # hidden_states = rearrange(hidden_states, '(b f) l d->  b (f l) d', b=bsz, f=frame, l=len_frame).contiguous()
         hidden_states = hidden_states.view(bsz, frame * len_frame, -1)
@@ -353,13 +353,13 @@ class StepVideoModel(ModelMixin, ConfigMixin):
 
         # embedded_timestep = repeat(embedded_timestep, 'b d -> (b f) d', f=frame).contiguous()
         b, d = embedded_timestep.shape
-        embedded_timestep.view(b, 1, d).broadcast_to((b, frame, d)).view(b*frame, d)
+        embedded_timestep = mint.broadcast_to(embedded_timestep.view(b, 1, d), (b, frame, d)).view(b*frame, d)
 
         shift, scale = (self.scale_shift_table[None] + embedded_timestep[:, None]).chunk(2, axis=1)
         hidden_states = self.norm_out(hidden_states)
         # Modulation
-        scale = ops.broadcast_to(scale[:, None], (bsz, frame) + scale.shape[1:]).view((-1,) + scale.shape[1:])
-        shift = ops.broadcast_to(shift[:, None], (bsz, frame) + shift.shape[1:]).view((-1,) + shift.shape[1:])
+        scale = mint.broadcast_to(scale[:, None], (bsz, frame) + scale.shape[1:]).view((-1,) + scale.shape[1:])
+        shift = mint.broadcast_to(shift[:, None], (bsz, frame) + shift.shape[1:]).view((-1,) + shift.shape[1:])
         hidden_states = hidden_states * (1 + scale) + shift
         hidden_states = self.proj_out(hidden_states)
         
@@ -678,12 +678,9 @@ class bak_StepVideoModel(ModelMixin, ConfigMixin):
         )
 
         # 3. Output blocks.
-        self.norm_out = nn.LayerNorm([self.inner_dim], epsilon=norm_eps)
-        if not norm_elementwise_affine:
-            self.norm_out.gamma.requires_grad = False
-            self.norm_out.beta.requires_grad = False
+        self.norm_out = mint.nn.LayerNorm([self.inner_dim], eps=norm_eps, elementwise_affine=norm_elementwise_affine)
         self.scale_shift_table = Parameter(np.random.randn(2, self.inner_dim) / self.inner_dim**0.5)
-        self.proj_out = nn.Linear(self.inner_dim, patch_size * patch_size * self.out_channels)
+        self.proj_out = mint.nn.Linear(self.inner_dim, patch_size * patch_size * self.out_channels)
         self.patch_size = patch_size
 
         self.adaln_single = AdaLayerNormSingle(
@@ -695,13 +692,9 @@ class bak_StepVideoModel(ModelMixin, ConfigMixin):
             self.clip_projection = None
         else:
             caption_channel, clip_channel = self.config.caption_channels
-            self.clip_projection = nn.Linear(clip_channel, self.inner_dim) 
+            self.clip_projection = mint.nn.Linear(clip_channel, self.inner_dim) 
 
-        self.caption_norm = nn.LayerNorm([caption_channel], epsilon=norm_eps)
-        if not norm_elementwise_affine:
-            self.caption_norm.gamma.requires_grad = False
-            self.caption_norm.beta.requires_grad = False
-        
+        self.caption_norm = mint.nn.LayerNorm([caption_channel], eps=norm_eps, elementwise_affine=norm_elementwise_affine)
         self.caption_projection = PixArtAlphaTextProjection(
             in_features=caption_channel, hidden_size=self.inner_dim
         )

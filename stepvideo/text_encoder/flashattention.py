@@ -12,7 +12,7 @@
 # ==============================================================================
 
 import mindspore as ms
-from mindspore import nn, ops, Tensor, Parameter
+from mindspore import nn, ops, Tensor, Parameter, mint
 
 from mindone.transformers.mindspore_adapter.attention import FlashAttention2
 
@@ -23,13 +23,13 @@ class FlashSelfAttention(FlashAttention2):
     
     def construct(self, q, k, v, cu_seqlens=None, max_seq_len=None, mask=None):
         # BSND -> BNSD
-        q = q.swapaxes(1, 2)
-        k = k.swapaxes(1, 2)
-        v = v.swapaxes(1, 2)
+        q = mint.swapaxes(q, 1, 2)
+        k = mint.swapaxes(k, 1, 2)
+        v = mint.swapaxes(v, 1, 2)
 
         output = super().construct(q, k, v, mask)
 
         # BNSD -> BSND
-        output = output.swapaxes(1, 2)
+        output = mint.swapaxes(output, 1, 2)
 
         return output
