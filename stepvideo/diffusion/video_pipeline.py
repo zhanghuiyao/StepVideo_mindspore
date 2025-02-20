@@ -20,7 +20,7 @@ from stepvideo.utils import VideoProcessor
 from stepvideo.parallel import is_distribute
 
 
-def call_api_gen(url, api, port=8080):
+def call_api_gen(url, api, port=5000):
     url =f"http://{url}:{port}/{api}-api"
     import aiohttp
     async def _fn(samples, *args, **kwargs):

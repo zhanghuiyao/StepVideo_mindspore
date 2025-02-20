@@ -9,6 +9,11 @@ pip install git+https://github.com/mindspore-lab/mindone.git
 
 ## run inference
 
+### Step 1: (option but recommend) download weights
+
+
+
+
 ```shell
 # run vae/captioner server on single-card (Ascend910*)
 ASCEND_RT_VISIBLE_DEVICES=0 python api/call_remote_server.py --model_dir where_you_download_dir &
