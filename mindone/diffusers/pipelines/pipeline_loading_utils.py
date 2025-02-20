@@ -297,7 +297,7 @@ def get_class_obj_and_candidates(
                     raise NotImplementedError(f"{class_name} has not been implemented in mindone.transformers yet")
                 class_candidates = {c: getattr(library, c, None) for c in importable_classes.keys()}
         else:
-            # FIXME: zhy_test
+            # FIXME: zhy_test, diffusers import custom library
             # raise NotImplementedError(f"{library_name} has not been implemented in mindone yet.")
 
             # we just import it from the library.

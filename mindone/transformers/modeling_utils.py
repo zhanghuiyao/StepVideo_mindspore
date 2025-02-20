@@ -1618,8 +1618,7 @@ class MSPreTrainedModel(nn.Cell, ModuleUtilsMixin, GenerationMixin, PushToHubMix
         use_keep_in_fp32_modules = False
 
         # FIXME: zhy_test comment load ckpt 1
-        resolved_archive_file = None
-        """
+        # resolved_archive_file = None
         if pretrained_model_name_or_path is not None:
             pretrained_model_name_or_path = str(pretrained_model_name_or_path)
             is_local = os.path.isdir(pretrained_model_name_or_path)
@@ -1834,7 +1833,7 @@ class MSPreTrainedModel(nn.Cell, ModuleUtilsMixin, GenerationMixin, PushToHubMix
                 logger.info(f"loading weights file {filename} from cache at {resolved_archive_file}")
         else:
             resolved_archive_file = None
-        """
+
             
         # We'll need to download and cache each checkpoint shard if the checkpoint is sharded.
         if is_sharded:
@@ -1880,10 +1879,10 @@ class MSPreTrainedModel(nn.Cell, ModuleUtilsMixin, GenerationMixin, PushToHubMix
         # load pt weights early so that we know which dtype to init the model under
         if from_pt:
             # FIXME: zhy_test comment load ckpt 2
-            state_dict = {}
-            # if not is_sharded and state_dict is None:
-            #     # Time to load the checkpoint
-            #     state_dict = load_state_dict(resolved_archive_file)
+            # state_dict = {}
+            if not is_sharded and state_dict is None:
+                # Time to load the checkpoint
+                state_dict = load_state_dict(resolved_archive_file)
 
             # set dtype to instantiate the model under:
             # 1. If mindspore_dtype is not None, we use that dtype
@@ -2167,35 +2166,35 @@ class MSPreTrainedModel(nn.Cell, ModuleUtilsMixin, GenerationMixin, PushToHubMix
 
             # FIXME: zhy_test comment load ckpt 3
             # loading checkpoint
-            # _s_time = time.time()
-            # for shard_file in resolved_archive_file:
-            #     state_dict = load_state_dict(shard_file)
-            #     print(f"====> time cost, load_state_dict: {time.time() - _s_time:.3f}s")
-            #     _s_time = time.time()
-            #     state_dict = _convert_state_dict(model, state_dict, start_prefix)
-            #     print(f"====> time cost, _convert_state_dict: {time.time() - _s_time:.3f}s")
-            #     _s_time = time.time()
+            _s_time = time.time()
+            for shard_file in resolved_archive_file:
+                state_dict = load_state_dict(shard_file)
+                print(f"====> time cost, load_state_dict: {time.time() - _s_time:.3f}s")
+                _s_time = time.time()
+                state_dict = _convert_state_dict(model, state_dict, start_prefix)
+                print(f"====> time cost, _convert_state_dict: {time.time() - _s_time:.3f}s")
+                _s_time = time.time()
 
-            #     # Mismatched keys contains tuples key/shape1/shape2 of weights in the checkpoint that have a shape not
-            #     # matching the weights in the model.
-            #     mismatched_keys += _find_mismatched_keys(
-            #         state_dict,
-            #         model_state_dict,
-            #         original_loaded_keys,
-            #         add_prefix_to_model,
-            #         remove_prefix_from_model,
-            #         ignore_mismatched_sizes,
-            #     )
-            #     print(f"====> time cost, _find_mismatched_keys: {time.time() - _s_time:.3f}s")
+                # Mismatched keys contains tuples key/shape1/shape2 of weights in the checkpoint that have a shape not
+                # matching the weights in the model.
+                mismatched_keys += _find_mismatched_keys(
+                    state_dict,
+                    model_state_dict,
+                    original_loaded_keys,
+                    add_prefix_to_model,
+                    remove_prefix_from_model,
+                    ignore_mismatched_sizes,
+                )
+                print(f"====> time cost, _find_mismatched_keys: {time.time() - _s_time:.3f}s")
 
-            #     _s_time = time.time()
-            #     error_msgs += _load_state_dict_into_model(model_to_load, state_dict, start_prefix, is_sharded=True)
-            #     print(f"====> time cost, _load_state_dict_into_model: {time.time() - _s_time:.3f}s")
-            #     _s_time = time.time()
+                _s_time = time.time()
+                error_msgs += _load_state_dict_into_model(model_to_load, state_dict, start_prefix, is_sharded=True)
+                print(f"====> time cost, _load_state_dict_into_model: {time.time() - _s_time:.3f}s")
+                _s_time = time.time()
 
-            #     # force memory release
-            #     del state_dict
-            #     gc.collect()
+                # force memory release
+                del state_dict
+                gc.collect()
 
         if len(error_msgs) > 0:
             error_msg = "\n\t".join(error_msgs)
