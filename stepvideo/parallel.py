@@ -125,10 +125,10 @@ def sp_all_gather(input_: Tensor, dim: int = 0):
         dim += output.ndim
     if dim != 0:
         _shape = (world_size, input_size[0]//world_size,) + input_size[1:]
-        output_tensor = output_tensor.reshape(_shape)
-        output_tensor = output_tensor.movedim(0, dim)
+        output = output.reshape(_shape)
+        output = output.movedim(0, dim)
 
     input_size[dim] = input_size[dim] * world_size
     # Reshape
-    output_tensor = output_tensor.reshape(input_size)
-    return output_tensor
+    output = output.reshape(input_size)
+    return output
