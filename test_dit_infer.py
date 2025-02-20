@@ -33,9 +33,12 @@ if __name__ == "__main__":
     
     from mindspore.nn.utils import no_init_parameters
     
+    print("building pipeline...")
     with no_init_parameters():
-        pipeline = StepVideoPipeline.from_pretrained(args.model_dir).to(ms.bfloat16)
+        pipeline = StepVideoPipeline.from_pretrained(args.model_dir)
+    pipeline = pipeline.to(ms.bfloat16)
     # pipeline.init_parameters_data()
+    print("build pipeline success.")
 
     pipeline.setup_api(
         vae_url = args.vae_url,
