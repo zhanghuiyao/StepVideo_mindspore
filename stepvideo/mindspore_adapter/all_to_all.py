@@ -45,7 +45,7 @@ class SeqAllToAll4D(nn.Cell):
                 .contiguous()
             )
 
-            output = ops.zeros_like(input_t)
+            output = mint.zeros_like(input_t)
             # https://pytorch.org/docs/stable/distributed.html#torch.distributed.all_to_all_single
             # (P, seq_len/P, bs, hc/P, hs) scatter seqlen -all2all-> (P, seq_len/P, bs, hc/P, hs) scatter head
 
@@ -62,7 +62,7 @@ class SeqAllToAll4D(nn.Cell):
             output = output.reshape(seqlen, bs, shard_hc, hs)
 
             # (seq_len, bs, hc/P, hs) -reshape-> (bs, seq_len, hc/P, hs)
-            output = output.swapaxes(0, 1).contiguous().reshape(bs, seqlen, shard_hc, hs)
+            output = mint.swapaxes(output, 0, 1).contiguous().reshape(bs, seqlen, shard_hc, hs)
 
         elif scatter_idx == 1 and gather_idx == 2:
             
@@ -74,14 +74,12 @@ class SeqAllToAll4D(nn.Cell):
             # transpose groups of heads with the seq-len parallel dimension, so that we can scatter them!
             # (bs, seqlen, hc/P, hs) -reshape-> (bs, P, seq_len/P, hc/P, hs) -transpose(0, 3)-> (hc/P, P, seqlen/P, bs, hs) -transpose(0, 1) -> (P, hc/P, seqlen/P, bs, hs)
             input_t = (
-                input.reshape(bs, self.sp_size, shard_seqlen, shard_hc, hs)
-                .swapaxes(0, 3)
-                .swapaxes(0, 1)
+                mint.swapaxes(mint.swapaxes(input.reshape(bs, self.sp_size, shard_seqlen, shard_hc, hs), 0, 3), 0, 1)
                 .contiguous()
                 .reshape(self.sp_size, shard_hc, shard_seqlen, bs, hs)
             )
 
-            output = ops.zeros_like(input_t)
+            output = mint.zeros_like(input_t)
             # https://pytorch.org/docs/stable/distributed.html#torch.distributed.all_to_all_single
             # (P, bs x hc/P, seqlen/P, hs) scatter seqlen -all2all-> (P, bs x seq_len/P, hc/P, hs) scatter head
 
@@ -98,7 +96,7 @@ class SeqAllToAll4D(nn.Cell):
             output = output.reshape(hc, shard_seqlen, bs, hs)
 
             # (hc, seqlen/N, bs, hs) -tranpose(0,2)-> (bs, seqlen/N, hc, hs)
-            output = output.swapaxes(0, 2).contiguous().reshape(bs, shard_seqlen, hc, hs)
+            output = mint.swapaxes(output, 0, 2).contiguous().reshape(bs, shard_seqlen, hc, hs)
 
         else:
             output = None

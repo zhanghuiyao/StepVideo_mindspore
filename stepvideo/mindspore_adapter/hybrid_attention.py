@@ -1,7 +1,7 @@
 from typing import Any, Tuple
 
 import mindspore as ms
-from mindspore import nn, ops, Tensor, Parameter
+from mindspore import nn, ops, Tensor, Parameter, mint
 from mindspore.communication.management import get_group_size
 
 from mindone.transformers.mindspore_adapter.attention import FlashAttention2
@@ -87,9 +87,9 @@ class LongContextAttention(nn.Cell):
         value_layer = self.seq_alltoall_4d(value, self.scatter_idx, self.gather_idx)
         
         # BSND -> BNSD, for fa
-        query_layer = query_layer.swapaxes(1, 2)
-        key_layer = key_layer.swapaxes(1, 2)
-        value_layer = value_layer.swapaxes(1, 2)
+        query_layer = mint.swapaxes(query_layer, 1, 2)
+        key_layer = mint.swapaxes(key_layer, 1, 2)
+        value_layer = mint.swapaxes(value_layer, 1, 2)
 
         out = self.fa_attn_fn(
             query_layer,
@@ -98,7 +98,7 @@ class LongContextAttention(nn.Cell):
         )
 
         # BNSD -> BSND, for fa
-        out = out.swapaxes(1, 2)
+        out = mint.swapaxes(out, 1, 2)
 
         context_layer = out
 

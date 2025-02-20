@@ -1,7 +1,7 @@
 import numpy as np
 
 import mindspore as ms
-from mindspore import nn, ops
+from mindspore import nn, ops, mint
 from mindspore.ops.operations.nn_ops import FlashAttentionScore as _FlashAttention
 
 DTYPE_FP16_MIN = float(np.finfo(np.float16).min)
@@ -74,12 +74,12 @@ class FlashAttention2(nn.Cell):
         if self.need_pad:
             if self.input_layout == "BNSD":
                 B, N, S, D = x.shape
-                pad = ops.zeros((B, N, S, self.d_pad), x.dtype)
+                pad = mint.zeros((B, N, S, self.d_pad), x.dtype)
             else:
                 B, S = x.shape[:2]
                 x = x.reshape(B, S, -1, self.head_dim)
-                pad = ops.zeros((B, S, x.shape[2], self.d_pad), x.dtype)
-            x = ops.concat((x, pad), axis=-1)
+                pad = mint.zeros((B, S, x.shape[2], self.d_pad), x.dtype)
+            x = mint.concat((x, pad), dim=-1)
         if self.input_layout == "BSH":
             B, S = x.shape[:2]
             x = x.reshape(B, S, -1)
