@@ -68,9 +68,9 @@ if __name__ == "__main__":
         prompt_embeds, prompt_attention_mask, clip_embedding = Tensor(data['y']), Tensor(data['y_mask']), Tensor(data['clip_embedding'])
 
         print(f"encode_prompt output shape:")
-        print(f"{prompt_embeds.shape=}")
-        print(f"{prompt_attention_mask.shape=}")
-        print(f"{clip_embedding.shape=}")
+        print(f"{prompt_embeds.shape=}, {prompt_embeds.dtype=}")
+        print(f"{prompt_attention_mask.shape=}, {prompt_attention_mask.dtype=}")
+        print(f"{clip_embedding.shape=}, {clip_embedding.dtype=}")
 
         return prompt_embeds, clip_embedding, prompt_attention_mask
 

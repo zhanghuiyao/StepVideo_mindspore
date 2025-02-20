@@ -73,7 +73,7 @@ if __name__ == "__main__":
         #     neg_magic=neg_magic,
         #     pos_magic=pos_magic,
         # )
-        transformer_dtype = self.transformer.dtype
+        # transformer_dtype = self.transformer.dtype
         # prompt_embeds = prompt_embeds.to(transformer_dtype)
         # prompt_attention_mask = prompt_attention_mask.to(transformer_dtype)
         # prompt_embeds_2 = prompt_embeds_2.to(transformer_dtype)
@@ -82,6 +82,7 @@ if __name__ == "__main__":
         # print(f"{prompt_embeds_2.shape=}")
         # print(f"{prompt_attention_mask.shape=}")
 
+        transformer_dtype = self.transformer.dtype
         prompt_embeds = Tensor(np.random.randn(2, 320, 6144), transformer_dtype)
         prompt_attention_mask = Tensor(np.random.randn(2, 397), transformer_dtype)
         prompt_embeds_2 = Tensor(np.random.randn(2, 77, 1024), transformer_dtype)
