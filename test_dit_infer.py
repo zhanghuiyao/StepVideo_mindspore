@@ -30,8 +30,13 @@ if __name__ == "__main__":
     # local_rank = get_parallel_group().local_rank
     
     setup_seed(args.seed)
-        
-    pipeline = StepVideoPipeline.from_pretrained(args.model_dir).to(ms.bfloat16)
+    
+    from mindspore.nn.utils import no_init_parameters
+    
+    with no_init_parameters():
+        pipeline = StepVideoPipeline.from_pretrained(args.model_dir).to(ms.bfloat16)
+    # pipeline.init_parameters_data()
+
     pipeline.setup_api(
         vae_url = args.vae_url,
         caption_url = args.caption_url,
