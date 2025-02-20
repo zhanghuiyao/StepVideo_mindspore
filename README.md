@@ -12,6 +12,7 @@ pip install git+https://github.com/mindspore-lab/mindone.git
 - [] check hunyuan-clip weight `bert.pooler.dense.weight`
 - [] add weight convert script
 
+- [] merge change to official mindone
 - [] speed-up
 - [] ...
 
