@@ -1,5 +1,5 @@
 import mindspore as ms
-from mindspore import nn, ops, Tensor, Parameter
+from mindspore import nn, ops, Tensor, Parameter, mint
 
 from mindspore.communication.management import GlobalComm, init, get_group_size, get_rank
 
@@ -229,8 +229,8 @@ def get_pp_split_index():
 def parallel_forward(fn_):
     def wrapTheFunction(_, hidden_states, *args, **kwargs):
         if kwargs['parallel']:            
-            hidden_states = ops.chunk(hidden_states, get_sequence_parallel_world_size(), axis=-2)[get_sequence_parallel_rank()]
-            kwargs['attn_mask'] = ops.chunk(kwargs['attn_mask'], get_sequence_parallel_world_size(), axis=-2)[get_sequence_parallel_rank()]
+            hidden_states = mint.chunk(hidden_states, get_sequence_parallel_world_size(), dim=-2)[get_sequence_parallel_rank()]
+            kwargs['attn_mask'] = mint.chunk(kwargs['attn_mask'], get_sequence_parallel_world_size(), dim=-2)[get_sequence_parallel_rank()]
         output = fn_(_, hidden_states, *args, **kwargs)
 
         if kwargs['parallel']:

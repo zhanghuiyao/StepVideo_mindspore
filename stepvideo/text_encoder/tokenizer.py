@@ -12,7 +12,7 @@
 # ==============================================================================
 
 import mindspore as ms
-from mindspore import nn, ops, Tensor, Parameter
+from mindspore import nn, ops, Tensor, Parameter, mint
 
 import numpy as np
 from typing import List
@@ -40,10 +40,10 @@ class LLaMaEmbedding(nn.Cell):
         self.params_dtype = cfg.params_dtype
         self.fp32_residual_connection = cfg.fp32_residual_connection 
         self.embedding_weights_in_fp32 = cfg.embedding_weights_in_fp32
-        self.word_embeddings = nn.Embedding(
+        self.word_embeddings = mint.nn.Embedding(
             cfg.padded_vocab_size, self.hidden_size,
         )
-        self.embedding_dropout = nn.Dropout(p=cfg.hidden_dropout)
+        self.embedding_dropout = mint.nn.Dropout(p=cfg.hidden_dropout)
 
     def construct(self, input_ids):
         # Embeddings.
@@ -55,7 +55,7 @@ class LLaMaEmbedding(nn.Cell):
             self.word_embeddings = self.word_embeddings.to(self.params_dtype)
 
         # Data format change to avoid explicit tranposes : [b s h] --> [s b h].
-        embeddings = embeddings.swapaxes(0, 1)
+        embeddings = mint.swapaxes(embeddings, 0, 1)
 
         # If the input flag for fp32 residual connection is set, convert for float.
         if self.fp32_residual_connection:

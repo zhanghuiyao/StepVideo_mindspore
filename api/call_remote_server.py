@@ -7,7 +7,7 @@ import threading
 import argparse
 
 import mindspore as ms
-from mindspore import ops, Tensor
+from mindspore import ops, Tensor, mint
 import numpy as np
 
 
@@ -125,7 +125,7 @@ class CaptionPipeline(Resource):
         
         len_clip = clip_embedding.shape[1]
 
-        y_mask = ops.pad(y_mask, (len_clip, 0), value=1)   ## pad attention_mask with clip's length 
+        y_mask = mint.nn.functional.pad(y_mask, (len_clip, 0), value=1)   ## pad attention_mask with clip's length 
 
         data = {
             'y': y.asnumpy(),

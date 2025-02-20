@@ -16,7 +16,7 @@ import inspect
 from typing import Optional
 
 import mindspore as ms
-from mindspore import nn, ops, Tensor, Parameter
+from mindspore import nn, ops, Tensor, Parameter, mint
 
 from stepvideo.text_encoder.flashattention import FlashSelfAttention
 from stepvideo.modules.normalization import RMSNorm
@@ -47,12 +47,12 @@ class MultiQueryAttention(nn.Cell):
         self.n_local_heads = cfg.num_attention_heads
         self.n_local_groups = self.n_groups
 
-        self.wqkv = nn.Linear(
+        self.wqkv = mint.nn.Linear(
             cfg.hidden_size,
             cfg.hidden_size + self.head_dim * 2 * self.n_groups,
             bias=False,
         )
-        self.wo = nn.Linear(
+        self.wo = mint.nn.Linear(
             cfg.hidden_size,
             cfg.hidden_size,
             bias=False,
@@ -73,12 +73,12 @@ class MultiQueryAttention(nn.Cell):
         seqlen, bsz, dim = x.shape
         xqkv = self.wqkv(x)
 
-        xq, xkv = ops.split(
+        xq, xkv = mint.split(
             xqkv,
             (dim // self.tp_size,
              self.head_dim*2*self.n_groups // self.tp_size
             ),
-            axis=-1,
+            dim=-1,
         )
 
         # gather on 1st dimension
@@ -90,16 +90,16 @@ class MultiQueryAttention(nn.Cell):
         # xq = rearrange(xq, "s b h d -> b s h d")
         # xk = rearrange(xk, "s b h d -> b s h d")
         # xv = rearrange(xv, "s b h d -> b s h d")
-        xq = xq.swapaxes(0, 1)
-        xk = xk.swapaxes(0, 1)
-        xv = xv.swapaxes(0, 1)
+        xq = mint.swapaxes(xq, 0, 1)
+        xk = mint.swapaxes(xk, 0, 1)
+        xv = mint.swapaxes(xv, 0, 1)
 
         q_per_kv = self.n_local_heads // self.n_local_groups
         if q_per_kv > 1:
             b, s, h, d = xk.shape
             if h == 1:
-                xk = xk.broadcast_to((b, s, q_per_kv, d))
-                xv = xv.broadcast_to((b, s, q_per_kv, d))
+                xk = mint.broadcast_to(xk, (b, s, q_per_kv, d))
+                xv = mint.broadcast_to(xv, (b, s, q_per_kv, d))
             else:
                 ''' To cover the cases where h > 1, we have
                     the following implementation, which is equivalent to:
@@ -121,7 +121,7 @@ class MultiQueryAttention(nn.Cell):
             # reduce-scatter only support first dimention now
             # output = rearrange(output, "b s h d -> s b (h d)").contiguous()
             b, s, h, d = output.shape
-            output = output.swapaxes(0, 1).view(s, b, h*d)
+            output = mint.swapaxes(output, 0, 1).view(s, b, h*d)
         else:
             # unuse branch
 
@@ -150,20 +150,20 @@ class FeedForward(nn.Cell):
 
         hidden_dim = multiple_of * ((hidden_dim + multiple_of - 1) // multiple_of)
 
-        self.w1 = nn.Linear(
+        self.w1 = mint.nn.Linear(
             dim,
             2 * hidden_dim,
             bias=False,
         )
-        self.w2 = nn.Linear(
+        self.w2 = mint.nn.Linear(
             hidden_dim,
             dim,
             bias=False,
         )
 
     def swiglu(self, x):
-        x = ops.chunk(x, 2, axis=-1)
-        return ops.silu(x[0]) * x[1]
+        x = mint.chunk(x, 2, dim=-1)
+        return mint.nn.functional.silu(x[0]) * x[1]
 
     def construct(self, x):
         x = self.swiglu(self.w1(x))
