@@ -8,7 +8,8 @@ import pickle
 import asyncio
 
 import mindspore as ms
-from mindspore import nn, ops, Tensor, Parameter
+from mindspore import nn, ops, Tensor, Parameter, mint
+from mindspore.communication.management import get_group_size, get_rank
 
 from mindone.diffusers.pipelines.pipeline_utils import DiffusionPipeline
 from mindone.diffusers.utils import BaseOutput
@@ -16,9 +17,10 @@ from mindone.diffusers.utils import BaseOutput
 from stepvideo.modules.model import StepVideoModel
 from stepvideo.diffusion.scheduler import FlowMatchDiscreteScheduler
 from stepvideo.utils import VideoProcessor
+from stepvideo.parallel import is_distribute
 
 
-def call_api_gen(url, api, port=8080):
+def call_api_gen(url, api, port=5000):
     url =f"http://{url}:{port}/{api}-api"
     import aiohttp
     async def _fn(samples, *args, **kwargs):
@@ -56,7 +58,7 @@ class StepVideoPipeline(DiffusionPipeline):
     Pipeline for text-to-video generation using StepVideo.
 
     This model inherits from [`DiffusionPipeline`]. Check the superclass documentation for the generic methods
-    implemented for all pipelines (downloading, saving, running on a particular device, etc.).
+    implemented for all pipelines (downloading, saving, running, etc.).
 
     Args:
         transformer ([`StepVideoModel`]):
@@ -148,7 +150,7 @@ class StepVideoPipeline(DiffusionPipeline):
             int(width) // self.vae_scale_factor_spatial,
         )   # b,f,c,h,w
 
-        latents = ops.randn(shape, dtype=dtype)
+        latents = mint.randn(shape, dtype=dtype)
         return latents
 
 
@@ -219,7 +221,6 @@ class StepVideoPipeline(DiffusionPipeline):
         """
 
         # 1. Check inputs. Raise error if not correct
-        device = self._execution_device
 
         # 2. Define call parameters
         if prompt is not None and isinstance(prompt, str):
@@ -264,11 +265,11 @@ class StepVideoPipeline(DiffusionPipeline):
         # 7. Denoising loop
         with self.progress_bar(total=num_inference_steps) as progress_bar:
             for i, t in enumerate(self.scheduler.timesteps):
-                latent_model_input = ops.cat([latents] * 2) if do_classifier_free_guidance else latents
+                latent_model_input = mint.cat([latents] * 2) if do_classifier_free_guidance else latents
                 latent_model_input = latent_model_input.to(transformer_dtype)
                 # broadcast to batch dimension in a way that's compatible with ONNX/Core ML
                 
-                timestep = t.broadcast_to(latent_model_input.shape[0]).to(latent_model_input.dtype)
+                timestep = mint.broadcast_to(t, (latent_model_input.shape[0],)).to(latent_model_input.dtype)
 
                 noise_pred = self.transformer(
                     hidden_states=latent_model_input,
@@ -292,13 +293,13 @@ class StepVideoPipeline(DiffusionPipeline):
                 
                 progress_bar.update()
 
-        from mindspore.communication.management import get_group_size, get_rank
-
         # if not torch.distributed.is_initialized() or int(torch.distributed.get_rank())==0:
-        if get_group_size() == 1 or get_rank() == 0:
+        if not is_distribute() or get_group_size() == 1 or get_rank() == 0:
             if not output_type == "latent":
                 video = self.decode_vae(latents)
-                video = self.video_processor.postprocess_video(video, output_file_name=output_file_name, output_type=output_type)
+                
+                # save video
+                self.video_processor.postprocess_video(video, output_file_name=output_file_name, output_type=output_type)
             else:
                 video = latents
 

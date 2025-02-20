@@ -1,5 +1,5 @@
 import mindspore as ms
-from mindspore import ops, nn, Tensor, Parameter
+from mindspore import mint, ops, nn, Tensor, Parameter
 
 from stepvideo.parallel import get_sequence_parallel_world_size, get_sequence_parallel_rank
 
@@ -24,10 +24,12 @@ class RoPE1D:
         # return self.cache[D, seq_len, dtype]
 
         # w/o cache
-        inv_freq = 1.0 / (self.base ** (ops.arange(0, D, 2).float() / D))
-        t = ops.arange(seq_len, dtype=inv_freq.dtype)
-        freqs = ops.einsum("i,j->ij", t, inv_freq).to(dtype)
-        freqs = ops.cat((freqs, freqs), axis=-1)
+        inv_freq = 1.0 / (self.base ** (mint.arange(0, D, 2).float() / D))
+        t = mint.arange(seq_len, dtype=inv_freq.dtype)
+        # freqs = ops.einsum("i,j->ij", t, inv_freq).to(dtype)
+        freqs = (t[:, None] * inv_freq[None, :]).to(dtype)
+
+        freqs = mint.cat((freqs, freqs), dim=-1)
         cos = freqs.cos()  # (Seq, Dim)
         sin = freqs.sin()
         return (cos, sin)
@@ -35,12 +37,12 @@ class RoPE1D:
     @staticmethod
     def rotate_half(x):
         x1, x2 = x[..., : x.shape[-1] // 2], x[..., x.shape[-1] // 2:]
-        return ops.cat((-x2, x1), axis=-1)
+        return mint.cat((-x2, x1), dim=-1)
 
     def apply_rope1d(self, tokens, pos1d, cos, sin):
         assert pos1d.ndim == 2
-        cos = ops.embedding(pos1d, cos)[:, :, None, :]
-        sin = ops.embedding(pos1d, sin)[:, :, None, :]
+        cos = mint.nn.functional.embedding(pos1d, cos)[:, :, None, :]
+        sin = mint.nn.functional.embedding(pos1d, sin)[:, :, None, :]
         return (tokens * cos) + (self.rotate_half(tokens) * sin)
 
     def __call__(self, tokens, positions):
@@ -76,10 +78,10 @@ class RoPE3D(RoPE1D):
         # return self.position_cache[f"{f}-{h}-{w}"]
      
         # w/o cache
-        x = ops.arange(f)
-        y = ops.arange(h)
-        z = ops.arange(w)
-        return ops.cartesian_prod(x, y, z).view(1, f*h*w, 3).broadcast_to((bsz, -1, 3))  # FIXME: ops.cartesian_prod
+        x = mint.arange(f)
+        y = mint.arange(h)
+        z = mint.arange(w)
+        return mint.broadcast_to(ops.cartesian_prod(x, y, z).view(1, f*h*w, 3), (bsz, -1, 3))  # FIXME: ops.cartesian_prod
 
     def __call__(self, tokens, rope_positions, ch_split, parallel=False):
         """
@@ -93,16 +95,16 @@ class RoPE3D(RoPE1D):
 
         mesh_grid = self.get_mesh_3d(rope_positions, bsz=tokens.shape[0])
         out = []
-        for i, (D, x) in enumerate(zip(ch_split, ops.split(tokens, ch_split, axis=-1))):
+        for i, (D, x) in enumerate(zip(ch_split, mint.split(tokens, ch_split, dim=-1))):
             
             cos, sin = self.get_cos_sin(D, int(mesh_grid.max()) + 1, tokens.dtype)
 
             if parallel:
-                mesh = ops.chunk(mesh_grid[:, :, i], get_sequence_parallel_world_size(), axis=1)[get_sequence_parallel_rank()]
+                mesh = mint.chunk(mesh_grid[:, :, i], get_sequence_parallel_world_size(), dim=1)[get_sequence_parallel_rank()]
             else:
                 mesh = mesh_grid[:, :, i]
             x = self.apply_rope1d(x, mesh, cos, sin)
             out.append(x)
             
-        tokens = ops.cat(out, axis=-1)
+        tokens = mint.cat(out, dim=-1)
         return tokens

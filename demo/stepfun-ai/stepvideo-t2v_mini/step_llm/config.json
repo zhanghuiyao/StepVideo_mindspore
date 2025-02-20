@@ -1,0 +1,32 @@
+{
+  "_name_or_path": "/mnt/shared-storage/tenant/opensource/step_llm",
+  "allow_transformer_engine": false,
+  "architectures": [
+    "Step1Model"
+  ],
+  "attention_dropout": 0.0,
+  "attention_impl": "GQA",
+  "base_batch_size": 128,
+  "embedding_weights_in_fp32": false,
+  "ffn_hidden_size": 16896,
+  "fp32_residual_connection": false,
+  "hidden_dropout": 0.0,
+  "hidden_size": 6144,
+  "kv_channels": 128,
+  "layernorm_epsilon": 1e-05,
+  "max_position_embeddings": 16384,
+  "num_attention_groups": 8,
+  "num_attention_heads": 48,
+  "num_layers": 1,
+  "orig_vocab_size": 65536,
+  "overlap_p2p_comm": true,
+  "padded_vocab_size": 65536,
+  "params_dtype": "torch.bfloat16",
+  "seq_length": 16384,
+  "swiglu_recompute_silu_dot": true,
+  "tokens_to_generate": 512,
+  "torch_dtype": "bfloat16",
+  "transformers_version": "4.48.3",
+  "use_flash_attn": true,
+  "virtual_pipeline_model_parallel_size": 3
+}

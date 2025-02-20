@@ -1,16 +1,15 @@
 import mindspore as ms
 from mindspore import ops, nn, Tensor, Parameter
 
-from ..mindspore_adapter import scaled_dot_product_attention
-try:
-    from ..mindspore_adapter.ring_attention import ring_attention_op as xFuserLongContextAttention
-except ImportError:
-    xFuserLongContextAttention = None
+from ..mindspore_adapter.scaled_dot_product_attn import scaled_dot_product_attention
+from ..mindspore_adapter.hybrid_attention import LongContextAttention
 
 
 class Attention(nn.Cell):
-    def __init__(self):
+    
+    def __init__(self, sp_group: str = None, head_dim: int = None, head_num: int = None):
         super().__init__()
+        self.hybrid_seq_parallel_attn = LongContextAttention(ring_pg=None, ulysses_pg=sp_group, head_dim=head_dim, head_num=head_num)
     
     def attn_processor(self, attn_type):
         if attn_type == 'mindspore':
@@ -56,9 +55,9 @@ class Attention(nn.Cell):
         k,
         v,
         **kwargs
+        # no mask, no causal
     ):
-        hybrid_seq_parallel_attn = xFuserLongContextAttention()
-        x = hybrid_seq_parallel_attn(
-            None, q,k,v
+        x = self.hybrid_seq_parallel_attn(
+            q,k,v
         )
         return x

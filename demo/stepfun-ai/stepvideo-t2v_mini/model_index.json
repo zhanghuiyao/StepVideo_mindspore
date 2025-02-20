@@ -1,0 +1,12 @@
+{
+  "_class_name": "StepVideoPipeline",
+  "_diffusers_version": "0.31.0",
+  "scheduler": [
+    "stepvideo",
+    "FlowMatchDiscreteScheduler"
+  ],
+  "transformer": [
+    "stepvideo",
+    "StepVideoModel"
+  ]
+}

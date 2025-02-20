@@ -4,7 +4,7 @@ from typing import Optional, Tuple, Union
 import numpy as np
 
 import mindspore as ms
-from mindspore import nn, ops, Tensor, Parameter
+from mindspore import nn, ops, Tensor, Parameter, mint
 
 from mindone.diffusers.configuration_utils import ConfigMixin, register_to_config
 from mindone.diffusers.utils import BaseOutput, logging
@@ -55,10 +55,10 @@ class FlowMatchDiscreteScheduler(SchedulerMixin, ConfigMixin):
         reverse: bool = False,
         solver: str = "euler",
     ):
-        sigmas = ops.linspace(1, 0, num_train_timesteps + 1)
+        sigmas = mint.linspace(1, 0, num_train_timesteps + 1)
 
         if not reverse:
-            sigmas = sigmas.flip(0)
+            sigmas = sigmas.flip((0,))
 
         self.sigmas = sigmas
         # the value fed to model
@@ -117,7 +117,7 @@ class FlowMatchDiscreteScheduler(SchedulerMixin, ConfigMixin):
         """
         self.num_inference_steps = num_inference_steps
         
-        sigmas = ops.linspace(1, 0, num_inference_steps + 1)
+        sigmas = mint.linspace(1, 0, num_inference_steps + 1)
         sigmas = self.sd3_time_shift(sigmas, time_shift)
 
         if not self.config.reverse:
@@ -189,8 +189,7 @@ class FlowMatchDiscreteScheduler(SchedulerMixin, ConfigMixin):
 
         if (
             isinstance(timestep, int)
-            or isinstance(timestep, Tensor)
-            or isinstance(timestep, Tensor)
+            or (isinstance(timestep, Tensor) and timestep.dtype in (ms.int16, ms.int32, ms.int64))
         ):
             raise ValueError(
                 (

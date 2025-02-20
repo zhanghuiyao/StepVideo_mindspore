@@ -33,14 +33,17 @@ class VideoProcessor:
             for img_array in video_array:
                 vid_writer.append_data(img_array)   
         
-    
-    def postprocess_video(self, video_tensor: mindspore.Tensor, output_file_name='', output_type="mp4", crop2standard540p=True):
+    from typing import Union
+    def postprocess_video(self, video_tensor: Union[mindspore.Tensor, np.array], output_file_name='', output_type="mp4", crop2standard540p=True):
         if len(self.name_suffix) == 0:
             video_path = os.path.join(self.save_path, f"{output_file_name}-{str(datetime.datetime.now())}.{output_type}")
         else:
             video_path = os.path.join(self.save_path, f"{output_file_name}-{self.name_suffix}.{output_type}")
 
-        video_tensor = (video_tensor.asnumpy().clip(-1, 1)+1)*127.5
+        if isinstance(video_tensor, mindspore.Tensor):
+            video_tensor = video_tensor.asnumpy()
+
+        video_tensor = (video_tensor.clip(-1, 1)+1)*127.5
         video_tensor = np.concatenate([t for t in video_tensor], axis=-2)
         video_array = video_tensor.clip(0, 255).astype(np.uint8).transpose(0,2,3,1)
         

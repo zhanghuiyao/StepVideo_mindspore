@@ -7,11 +7,31 @@ def parse_args(namespace=None):
     parser = add_denoise_schedule_args(parser)
     parser = add_inference_args(parser)
     parser = add_parallel_args(parser)
+    parser = add_pipeline_parallel_args(parser)
 
     args = parser.parse_args(namespace=namespace)
 
     return args
 
+
+def add_pipeline_parallel_args(parser: argparse.ArgumentParser):
+    group = parser.add_argument_group(
+        title="custom pipeline parallel"
+    )
+
+    group.add_argument(
+        "--pp_degree",
+        type=int,
+        default='2',
+    )
+    group.add_argument(
+        "--pp_split_index",
+        type=int,
+        default=24,
+        help="full 48 layers, split a half.",
+    )
+
+    return parser
 
 
 def add_extra_models_args(parser: argparse.ArgumentParser):
