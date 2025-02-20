@@ -31,13 +31,8 @@ if __name__ == "__main__":
     
     setup_seed(args.seed)
     
-    from mindspore.nn.utils import no_init_parameters
-    
     print("building pipeline...")
-    with no_init_parameters():
-        pipeline = StepVideoPipeline.from_pretrained(args.model_dir).to(ms.bfloat16)
-    print("init pipeline params data...")
-    pipeline.init_parameters_data()
+    pipeline = StepVideoPipeline.from_pretrained(args.model_dir).to(ms.bfloat16)
     print("build pipeline success.")
 
     pipeline.setup_api(
