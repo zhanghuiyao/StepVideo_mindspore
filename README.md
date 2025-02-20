@@ -74,7 +74,29 @@ test_dit_infer.py --model_dir $model_dir --vae_url $url --caption_url $url  --ul
 tail -f outputs/parallel_logs/worker_0.log
 ```
 
+#### 1.2. test dit sp+pp
 
+```shell
+parallel=4
+sp=2
+pp=2
+url='127.0.0.1'
+model_dir='./demo/stepfun-ai/stepvideo-t2v_mini'
+
+ASCEND_RT_VISIBLE_DEVICES=4,5,6,7 msrun --bind_core=True --worker_num=$parallel --local_worker_num=$parallel --master_port=9000 --log_dir=outputs/parallel_logs python \
+test_dit_infer.py --model_dir $model_dir --vae_url $url --caption_url $url  --ulysses_degree $sp --pp_degree $pp --prompt "一名宇航员在月球上发现一块石碑，上面印有“MindSpore”字样，闪闪发光" --infer_steps 5  --cfg_scale 9.0 --time_shift 13.0 --num_frames 136
+
+tail -f outputs/parallel_logs/worker_0.log
+```
+
+
+#### 1.3. test send/recv
+
+```shell
+parallel=4
+
+ASCEND_RT_VISIBLE_DEVICES=4,5,6,7 msrun --bind_core=True --worker_num=$parallel --local_worker_num=$parallel --master_port=9000 --log_dir=outputs/parallel_logs python test_send_recv.py
+```
 
 
 ### 2. test server connect

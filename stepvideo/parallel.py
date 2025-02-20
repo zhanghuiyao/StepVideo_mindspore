@@ -11,11 +11,131 @@ sp_rank = None
 _is_distribute = False
 
 
+# zhy_test custom pipeline parallel
+pp_group = None
+pp_size = None
+pp_rank = None
+pp_split_index = None
+
+
 def is_distribute():
     return _is_distribute
 
 
-def initialize_parall_group(ring_degree=1, ulysses_degree=1):
+# new, w/ pp
+def initialize_parall_group(args: any = None, ring_degree=1, ulysses_degree=1):
+
+    global _is_distribute
+    global pp_split_index
+
+    pp_degree = args.pp_degree
+    pp_split_index = args.pp_split_index
+
+    world_size = 1
+    rank_id = 0
+    if ring_degree > 1 or ulysses_degree > 1 or pp_degree > 1:
+        init()
+        world_size = get_group_size()
+        rank_id = get_rank()
+        print(f"init_environment, rank_id: {rank_id}, world_size: {world_size}")
+
+        ms.reset_auto_parallel_context()
+        ms.set_auto_parallel_context(
+            parallel_mode=ms.ParallelMode.DATA_PARALLEL,
+            gradients_mean=True,
+            device_num=world_size,
+        )
+
+        _is_distribute = True
+
+    global sp_group
+    global sp_size
+    global sp_rank
+
+    global pp_group
+    global pp_size
+    global pp_rank
+
+    if ring_degree > 1:
+        raise NotImplementedError
+    elif pp_degree > 1:
+        
+        from mindspore.communication import create_group
+
+        # overview
+        # rank_id   : 0     , 1     , 2     , 3
+        # stage num : stage1, stage1, stage2, stage2
+        # sp group  : 0     , 0     , 1     , 1         # comm between same stage
+        # sp rank   : 0     , 1     , 0     , 1
+        # pp group  : 0     , 1     , 0     , 1         # comm between stage 0 and 1
+        # pp rank   : 0     , 0     , 1     , 1
+
+
+        # create sp group
+        sp_group_id = rank_id // ulysses_degree  # 0, 1, 2, 3 -> //2 -> 0, 0, 1, 1
+        s_sp_id, e_sp_id = sp_group_id * ulysses_degree, (sp_group_id + 1) * ulysses_degree  # 0, 0, 1, 1 -> *2  -> [0:2], [0:2], [2:4], [2:4]
+        sp_comm_group = f"sub_sp_group_{sp_group_id}"
+        create_group(sp_comm_group, [_i for _i in range(s_sp_id, e_sp_id)])
+
+        # create pp group
+        assert pp_degree == 2
+        assert ulysses_degree * pp_degree == world_size
+        pp_group_id = rank_id % ulysses_degree  # 0, 1, 2, 3 -> %2  -> 0, 1, 0, 1
+        pp_ranks = [_i for _i in range(world_size) if _i%ulysses_degree==pp_group_id]
+        pp_comm_group = f"sub_pp_group_{pp_group_id}"
+        create_group(pp_comm_group, pp_ranks)
+        
+
+        # set global var
+        sp_size = ulysses_degree
+        sp_rank = rank_id % ulysses_degree
+        sp_group = sp_comm_group
+
+        pp_size = pp_degree
+        pp_rank = rank_id // ulysses_degree
+        pp_group = pp_comm_group
+
+
+        print(f"enable custom pipeline parallel, {pp_degree=}, {ulysses_degree=}")
+
+
+    elif ulysses_degree > 1:
+        if ulysses_degree == world_size:
+            sp_group = GlobalComm.WORLD_COMM_GROUP
+            sp_size = world_size
+            sp_rank = rank_id
+        else:
+            from mindspore.communication import create_group
+
+            g_id = rank_id // ulysses_degree
+            s_id, e_id = g_id * ulysses_degree, (g_id + 1) * ulysses_degree
+            comm_group = f"sub_sp_group_{g_id}"
+            create_group(comm_group, [_i for _i in range(s_id, e_id)])
+            
+            sp_size = ulysses_degree
+            sp_rank = rank_id % ulysses_degree
+            sp_group = comm_group
+    else:
+        sp_size = 1
+        sp_rank = 0
+        sp_group = None
+
+
+    # dist.init_process_group("nccl")
+    # xfuser.core.distributed.init_distributed_environment(
+    #     rank=dist.get_rank(), 
+    #     world_size=dist.get_world_size()
+    # )
+    #
+    # xfuser.core.distributed.initialize_model_parallel(
+    #     sequence_parallel_degree=dist.get_world_size(),
+    #     ring_degree=ring_degree,
+    #     ulysses_degree=ulysses_degree,
+    # )
+
+
+# old, w/o pp
+def bak_initialize_parall_group(ring_degree=1, ulysses_degree=1):
 
     global _is_distribute
 
@@ -76,6 +196,7 @@ def initialize_parall_group(ring_degree=1, ulysses_degree=1):
     #     ulysses_degree=ulysses_degree,
     # )
 
+
 def get_parallel_group():
     # return xfuser.core.distributed.get_world_group()
     return get_group_size()
@@ -91,6 +212,23 @@ def get_sequence_parallel_rank():
 def get_sp_group():
     # return xfuser.core.distributed.parallel_state.get_sp_group()
     return sp_group
+
+def get_pipeline_parallel_world_size():
+    # return xfuser.core.distributed.parallel_state.get_sequence_parallel_world_size()
+    return pp_size
+
+def get_pipeline_parallel_rank():
+    # return xfuser.core.distributed.parallel_state.get_sequence_parallel_rank()
+    return pp_rank
+
+def get_pp_group():
+    # return xfuser.core.distributed.parallel_state.get_sp_group()
+    return pp_group
+
+def get_pp_split_index():
+    # return xfuser.core.distributed.parallel_state.get_sp_group()
+    return pp_split_index
+
 
 def parallel_forward(fn_):
     def wrapTheFunction(_, hidden_states, *args, **kwargs):
