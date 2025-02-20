@@ -2,7 +2,7 @@ import math
 from typing import Any, Dict, Optional, Union, Tuple
 
 import mindspore as ms
-from mindspore import nn, ops, Tensor, Parameter
+from mindspore import nn, ops, Tensor, Parameter, mint
 
 
 class RMSNorm(nn.Cell):
@@ -30,7 +30,7 @@ class RMSNorm(nn.Cell):
         
         self.weight = None
         if elementwise_affine:
-            self.weight = Parameter(ops.ones(dim, dtype=dtype))
+            self.weight = Parameter(mint.ones(dim, dtype=dtype))
 
     def _norm(self, x):
         """
@@ -43,7 +43,7 @@ class RMSNorm(nn.Cell):
             mindspore.Tensor: The normalized tensor.
 
         """
-        return x * ops.rsqrt(x.pow(2).mean(-1, keep_dims=True) + self.eps)
+        return x * mint.rsqrt(x.pow(2).mean(-1, keep_dims=True) + self.eps)
 
     def construct(self, x):
         """
@@ -64,11 +64,11 @@ class RMSNorm(nn.Cell):
     
 
 ACTIVATION_FUNCTIONS = {
-    "swish": nn.SiLU(),
-    "silu": nn.SiLU(),
-    "mish": nn.Mish(),
-    "gelu": nn.GELU(approximate=False),
-    "relu": nn.ReLU(),
+    "swish": mint.nn.SiLU(),
+    "silu": mint.nn.SiLU(),
+    "mish": mint.nn.Mish(),
+    "gelu": mint.nn.GELU(),
+    "relu": mint.nn.ReLU(),
 }
 
 
@@ -109,27 +109,27 @@ def get_timestep_embedding(
     assert len(timesteps.shape) == 1, "Timesteps should be a 1d-array"
 
     half_dim = embedding_dim // 2
-    exponent = -math.log(max_period) * ops.arange(
+    exponent = -math.log(max_period) * mint.arange(
         start=0, end=half_dim, dtype=ms.float32
     )
     exponent = exponent / (half_dim - downscale_freq_shift)
 
-    emb = ops.exp(exponent)
+    emb = mint.exp(exponent)
     emb = timesteps[:, None].float() * emb[None, :]
 
     # scale embeddings
     emb = scale * emb
 
     # concat sine and cosine embeddings
-    emb = ops.cat([ops.sin(emb), ops.cos(emb)], axis=-1)
+    emb = mint.cat([mint.sin(emb), mint.cos(emb)], dim=-1)
 
     # flip sine and cosine embeddings
     if flip_sin_to_cos:
-        emb = ops.cat([emb[:, half_dim:], emb[:, :half_dim]], axis=-1)
+        emb = mint.cat([emb[:, half_dim:], emb[:, :half_dim]], dim=-1)
 
     # zero pad
     if embedding_dim % 2 == 1:
-        emb = ops.pad(emb, (0, 1, 0, 0))
+        emb = mint.nn.functional.pad(emb, (0, 1, 0, 0))
     return emb
 
 
@@ -164,7 +164,7 @@ class TimestepEmbedding(nn.Cell):
         sample_proj_bias=True
     ):
         super().__init__()
-        linear_cls = nn.Linear
+        linear_cls = mint.nn.Linear
 
         self.linear_1 = linear_cls(
                 in_channels, 
@@ -273,8 +273,8 @@ class AdaLayerNormSingle(nn.Cell):
             embedding_dim, size_emb_dim=embedding_dim // 2, use_additional_conditions=use_additional_conditions
         )
 
-        self.silu = nn.SiLU()
-        self.linear = nn.Linear(embedding_dim, 6 * embedding_dim, bias=True)
+        self.silu = mint.nn.SiLU()
+        self.linear = mint.nn.Linear(embedding_dim, 6 * embedding_dim, bias=True)
 
         self.time_step_rescale = time_step_rescale  ## timestep usually in [0, 1], we rescale it to [0,1000] for stability
 
@@ -299,13 +299,13 @@ class PixArtAlphaTextProjection(nn.Cell):
 
     def __init__(self, in_features, hidden_size):
         super().__init__()
-        self.linear_1 = nn.Linear(
+        self.linear_1 = mint.nn.Linear(
                 in_features, 
                 hidden_size, 
                 bias=True, 
             )
         # self.act_1 = nn.GELU(approximate="tanh")
-        self.linear_2 = nn.Linear(
+        self.linear_2 = mint.nn.Linear(
                 hidden_size, 
                 hidden_size, 
                 bias=True, 
@@ -313,7 +313,7 @@ class PixArtAlphaTextProjection(nn.Cell):
 
     def construct(self, caption):
         hidden_states = self.linear_1(caption)
-        hidden_states = ops.gelu(hidden_states, approximate="tanh") # act_1
+        hidden_states = mint.nn.functional.gelu(hidden_states, approximate="tanh") # act_1
         hidden_states = self.linear_2(hidden_states)
         return hidden_states
 

@@ -11,7 +11,7 @@
 # copies or substantial portions of the Software.
 # ==============================================================================
 import mindspore as ms
-from mindspore import nn, ops, Tensor, Parameter
+from mindspore import nn, ops, Tensor, Parameter, mint
 
 import numpy as np
 from typing import Optional
@@ -27,8 +27,8 @@ class SelfAttention(Attention):
         
         super().__init__(sp_group=sp_group, head_dim=self.head_dim, head_num=self.n_heads)
 
-        self.wqkv = nn.Linear(hidden_dim, hidden_dim*3, bias=bias)
-        self.wo = nn.Linear(hidden_dim, hidden_dim, bias=bias)
+        self.wqkv = mint.nn.Linear(hidden_dim, hidden_dim*3, bias=bias)
+        self.wo = mint.nn.Linear(hidden_dim, hidden_dim, bias=bias)
         
         self.with_rope = with_rope
         self.with_qk_norm = with_qk_norm
@@ -58,7 +58,7 @@ class SelfAttention(Attention):
         xqkv = self.wqkv(x) 
         xqkv = xqkv.view(*x.shape[:-1], self.n_heads, 3*self.head_dim)
 
-        xq, xk, xv = ops.split(xqkv, [self.head_dim]*3, axis=-1)  ## seq_len, n, dim
+        xq, xk, xv = mint.split(xqkv, [self.head_dim]*3, dim=-1)  ## seq_len, n, dim
     
         if self.with_qk_norm:
             xq = self.q_norm(xq)
@@ -93,9 +93,9 @@ class CrossAttention(Attention):
         
         super().__init__(sp_group=sp_group, head_dim=self.head_dim, head_num=self.n_heads)
 
-        self.wq = nn.Linear(hidden_dim, hidden_dim, bias=bias)
-        self.wkv = nn.Linear(hidden_dim, hidden_dim*2, bias=bias)
-        self.wo = nn.Linear(hidden_dim, hidden_dim, bias=bias)
+        self.wq = mint.nn.Linear(hidden_dim, hidden_dim, bias=bias)
+        self.wkv = mint.nn.Linear(hidden_dim, hidden_dim*2, bias=bias)
+        self.wo = mint.nn.Linear(hidden_dim, hidden_dim, bias=bias)
         
         self.with_qk_norm = with_qk_norm
         if self.with_qk_norm:
@@ -116,7 +116,7 @@ class CrossAttention(Attention):
         xkv = self.wkv(encoder_hidden_states)
         xkv = xkv.view(*xkv.shape[:-1], self.n_heads, 2*self.head_dim)
 
-        xk, xv = ops.split(xkv, [self.head_dim]*2, axis=-1)  ## seq_len, n, dim
+        xk, xv = mint.split(xkv, [self.head_dim]*2, dim=-1)  ## seq_len, n, dim
     
         if self.with_qk_norm:
             xq = self.q_norm(xq)
@@ -151,11 +151,11 @@ class GELU(nn.Cell):
 
     def __init__(self, dim_in: int, dim_out: int, approximate: str = "none", bias: bool = True):
         super().__init__()
-        self.proj = nn.Linear(dim_in, dim_out, bias=bias)
+        self.proj = mint.nn.Linear(dim_in, dim_out, bias=bias)
         self.approximate = approximate
 
     def gelu(self, gate: Tensor) -> Tensor:
-        return ops.gelu(gate, approximate=self.approximate)
+        return mint.nn.functional.gelu(gate, approximate=self.approximate)
 
     def construct(self, hidden_states):
         hidden_states = self.proj(hidden_states)
@@ -177,8 +177,8 @@ class FeedForward(nn.Cell):
         dim_out = dim if dim_out is None else dim_out
         self.net = nn.CellList([
             GELU(dim, inner_dim, approximate="tanh", bias=bias),
-            nn.Identity(),
-            nn.Linear(inner_dim, dim_out, bias=bias)
+            mint.nn.Identity(),
+            mint.nn.Linear(inner_dim, dim_out, bias=bias)
         ])
 
     def construct(self, hidden_states: Tensor, *args, **kwargs) -> Tensor:
@@ -243,10 +243,10 @@ class StepVideoTransformerBlock(nn.Cell):
     ):
         super().__init__()
         self.dim = dim
-        self.norm1 = nn.LayerNorm([dim], epsilon=norm_eps)
+        self.norm1 = mint.nn.LayerNorm([dim], eps=norm_eps)
         self.attn1 = SelfAttention(dim, attention_head_dim, bias=False, with_rope=True, with_qk_norm=True, attn_type=attention_type, sp_group=sp_group)
         
-        self.norm2 = nn.LayerNorm([dim], epsilon=norm_eps)
+        self.norm2 = mint.nn.LayerNorm([dim], eps=norm_eps)
         self.attn2 = CrossAttention(dim, attention_head_dim, bias=False, with_qk_norm=True, attn_type='mindspore', sp_group=sp_group)
 
         self.ff = FeedForward(dim=dim, inner_dim=ff_inner_dim, dim_out=dim, bias=ff_bias)
@@ -308,14 +308,14 @@ class PatchEmbed(nn.Cell):
         self.flatten = flatten
         self.layer_norm = layer_norm
 
-        self.proj = nn.Conv2d(
-            in_channels, embed_dim, kernel_size=(patch_size, patch_size), stride=patch_size, has_bias=bias, pad_mode="pad",
+        self.proj = mint.nn.Conv2d(
+            in_channels, embed_dim, kernel_size=(patch_size, patch_size), stride=patch_size, bias=bias,
         )
 
     def construct(self, latent):
         latent = self.proj(latent).to(latent.dtype)   
         if self.flatten:
-            latent = latent.flatten(start_dim=2).swapaxes(1, 2)  # BCHW -> BNC
+            latent = mint.swapaxes(latent.flatten(start_dim=2), 1, 2)  # BCHW -> BNC
         if self.layer_norm:
             latent = self.norm(latent)
 

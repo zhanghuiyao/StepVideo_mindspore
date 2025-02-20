@@ -8,7 +8,7 @@ import pickle
 import asyncio
 
 import mindspore as ms
-from mindspore import nn, ops, Tensor, Parameter
+from mindspore import nn, ops, Tensor, Parameter, mint
 from mindspore.communication.management import get_group_size, get_rank
 
 from mindone.diffusers.pipelines.pipeline_utils import DiffusionPipeline
@@ -150,7 +150,7 @@ class StepVideoPipeline(DiffusionPipeline):
             int(width) // self.vae_scale_factor_spatial,
         )   # b,f,c,h,w
 
-        latents = ops.randn(shape, dtype=dtype)
+        latents = mint.randn(shape, dtype=dtype)
         return latents
 
 
@@ -265,11 +265,11 @@ class StepVideoPipeline(DiffusionPipeline):
         # 7. Denoising loop
         with self.progress_bar(total=num_inference_steps) as progress_bar:
             for i, t in enumerate(self.scheduler.timesteps):
-                latent_model_input = ops.cat([latents] * 2) if do_classifier_free_guidance else latents
+                latent_model_input = mint.cat([latents] * 2) if do_classifier_free_guidance else latents
                 latent_model_input = latent_model_input.to(transformer_dtype)
                 # broadcast to batch dimension in a way that's compatible with ONNX/Core ML
                 
-                timestep = t.broadcast_to((latent_model_input.shape[0],)).to(latent_model_input.dtype)
+                timestep = mint.broadcast_to(t, (latent_model_input.shape[0],)).to(latent_model_input.dtype)
 
                 noise_pred = self.transformer(
                     hidden_states=latent_model_input,
