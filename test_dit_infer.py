@@ -25,7 +25,7 @@ if __name__ == "__main__":
         # jit_syntax_level=ms.STRICT,
     )
     
-    initialize_parall_group(ring_degree=args.ring_degree, ulysses_degree=args.ulysses_degree)
+    initialize_parall_group(args, ring_degree=args.ring_degree, ulysses_degree=args.ulysses_degree)
     
     # local_rank = get_parallel_group().local_rank
     
