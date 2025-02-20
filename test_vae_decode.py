@@ -6,7 +6,7 @@ from mindspore import nn, ops, Tensor, Parameter
 from stepvideo.diffusion.video_pipeline import StepVideoPipeline
 from stepvideo.config import parse_args
 from stepvideo.utils import setup_seed
-from stepvideo.parallel import initialize_parall_group, get_parallel_group
+from stepvideo.parallel import initialize_parall_group
 
 
 # for test
@@ -28,8 +28,6 @@ if __name__ == "__main__":
     )
     
     initialize_parall_group(ring_degree=args.ring_degree, ulysses_degree=args.ulysses_degree)
-    
-    # local_rank = get_parallel_group().local_rank
     
     setup_seed(args.seed)
         

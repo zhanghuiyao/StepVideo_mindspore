@@ -16,7 +16,7 @@ from typing import Optional
 
 import mindspore as ms
 from mindspore import nn, ops, Tensor, Parameter
-from mindspore.communication.management import get_group_size, get_rank
+from mindspore.communication.management import get_rank
 
 from ..mindspore_adapter.scaled_dot_product_attn import scaled_dot_product_attention
 

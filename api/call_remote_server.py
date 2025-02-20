@@ -48,14 +48,19 @@ class StepVaePipeline(Resource):
     def decode(self, samples, *args, **kwargs):
         # with ms._no_grad():    
         # try:
+        #
+        # except:
+        #     # empty_cache()
+        #     return None
+
         dtype = next(self.vae.get_parameters()).dtype
+        if not isinstance(samples, Tensor):
+            samples = Tensor(samples)
         samples = self.vae.decode(samples.to(dtype) / self.scale_factor)
         if hasattr(samples,'sample'):
             samples = samples.sample
         return samples
-        # except:
-        #     # empty_cache()
-        #     return None
+        
 
 
 lock = threading.Lock()
@@ -65,21 +70,22 @@ class VAEapi(Resource):
         
     def get(self):
         with lock:
-            try:
-                feature = pickle.loads(request.get_data())
-                feature['api'] = 'vae'
+            # try:
+            #
+            # except Exception as e:
+            #     print("Caught Exception: ", e)
+            #     return Response(e)
             
-                feature = {k:v for k, v in feature.items() if v is not None}
-                video_latents = self.vae_pipeline.decode(**feature)
-                if isinstance(video_latents, ms.Tensor):
-                    video_latents = video_latents.asnumpy()
+            feature = pickle.loads(request.get_data())
+            feature['api'] = 'vae'
+        
+            feature = {k:v for k, v in feature.items() if v is not None}
+            video_latents = self.vae_pipeline.decode(**feature)
+            if isinstance(video_latents, ms.Tensor):
+                video_latents = video_latents.asnumpy()
 
-                response = pickle.dumps(video_latents)
+            response = pickle.dumps(video_latents)
 
-            except Exception as e:
-                print("Caught Exception: ", e)
-                return Response(e)
-            
             return Response(response)
 
 
@@ -106,6 +112,11 @@ class CaptionPipeline(Resource):
     def embedding(self, prompts, *args, **kwargs):
         # with ms._no_grad():
         # try:
+        #
+        # except Exception as err:
+        #     print(f"{err}")
+        #     return None
+
         input_ids_1, mask_1 = self.text_encoder.prompts_to_tokens(prompts)  # stepllm tokenizer
         input_ids_2, mask_2 = self.clip.prompts_to_tokens(prompts)          # hunyuan clip tokenizer
 
@@ -123,9 +134,6 @@ class CaptionPipeline(Resource):
         }
 
         return data
-        # except Exception as err:
-        #     print(f"{err}")
-        #     return None
 
 
 
@@ -136,17 +144,17 @@ class Captionapi(Resource):
         
     def get(self):
         with lock:
-            try:
-                feature = pickle.loads(request.get_data())
-                feature['api'] = 'caption'
-            
-                feature = {k:v for k, v in feature.items() if v is not None}
-                embeddings = self.caption_pipeline.embedding(**feature)
-                response = pickle.dumps(embeddings)
+            # try:
+            # except Exception as e:
+            #     print("Caught Exception: ", e)
+            #     return Response(e)
 
-            except Exception as e:
-                print("Caught Exception: ", e)
-                return Response(e)
+            feature = pickle.loads(request.get_data())
+            feature['api'] = 'caption'
+        
+            feature = {k:v for k, v in feature.items() if v is not None}
+            embeddings = self.caption_pipeline.embedding(**feature)
+            response = pickle.dumps(embeddings)
             
             return Response(response)
 
