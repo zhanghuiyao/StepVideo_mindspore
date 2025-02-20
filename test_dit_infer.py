@@ -31,9 +31,11 @@ if __name__ == "__main__":
     
     setup_seed(args.seed)
     
+    import time
     print("building pipeline...")
+    _t = time.time()
     pipeline = StepVideoPipeline.from_pretrained(args.model_dir).to(ms.bfloat16)
-    print("build pipeline success.")
+    print(f"build pipeline success, time cost: {(time.time()-_t)/60:.2f} min")
 
     pipeline.setup_api(
         vae_url = args.vae_url,
