@@ -116,19 +116,25 @@ def sp_all_gather(input_: Tensor, dim: int = 0):
 
     # w/ sp
     world_size = get_sequence_parallel_world_size()
-    input_size = input_.shape
+    if world_size == 1:
+        return input_
 
-    output = ops.AllGather(group=get_sp_group())(input_)  # e.g. (2, 8) -> (4, 8)
-    
-    dim = -2
     if dim < 0:
-        dim += output.ndim
-    if dim != 0:
-        _shape = (world_size, input_size[0]//world_size,) + input_size[1:]
-        output = output.reshape(_shape)
-        output = output.movedim(0, dim)
+        dim += input_.ndim
 
+    input_size = list(input_.shape)
+    input_size[0] *= world_size
+
+    # All-gather.
+    output_tensor = ops.AllGather(group=get_sp_group())(input_)  # e.g. (2, 8) -> (sp*2, 8)
+
+    if dim != 0:
+        input_size[0] //= world_size
+        output_tensor = output_tensor.reshape([world_size, ] + input_size)
+        output_tensor = output_tensor.movedim(0, dim)
+
+    input_size = list(input_.shape)
     input_size[dim] = input_size[dim] * world_size
     # Reshape
-    output = output.reshape(input_size)
-    return output
+    output_tensor = output_tensor.reshape(input_size)
+    return output_tensor
