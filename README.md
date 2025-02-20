@@ -7,12 +7,31 @@ pip install git+https://github.com/mindspore-lab/mindone.git
 ```
 
 
+## todo list
+
+- [] check hunyuan-clip weight `bert.pooler.dense.weight`
+- [] add weight convert script
+
+- [] speed-up
+- [] ...
+
+
+
+
 ## run inference
 
-### Step 1: (option but recommend) download weights
+### step 1: (option but recommend) download weights
+
+link: https://huggingface.co/stepfun-ai/stepvideo-t2v
 
 
+### step 2: convert a weight(hunyuan-clip) to safetensors
 
+
+`pytorch_model.bin` -> `model.safetensors`
+
+
+### step 3: running
 
 ```shell
 # run vae/captioner server on single-card (Ascend910*)
@@ -32,9 +51,23 @@ run_parallel.py --model_dir $model_dir --vae_url $url --caption_url $url  --ulys
 ```
 
 
+## performence
+
+|     Model    |  height/width/frame |  Peak Memory | 50 steps w flash-attn |
+|:------------:|:------------:|:------------:|:------------:|
+| Step-Video-T2V   |        544px992px204f      |  45.83 GB | ~ 68 min |
+| Step-Video-T2V   |        544px992px136f      |  - GB | - min |
 
 
-## test
+
+<br>
+<br>
+<br>
+<br>
+<br>
+
+
+## test scripts
 
 
 ### 1. test mini-step-video on single-process and single-card
