@@ -27,6 +27,7 @@ from huggingface_hub.utils import validate_hf_hub_args
 
 import mindspore as ms
 from mindspore import nn, ops
+from mindspore.nn.utils import no_init_parameters
 
 from mindone.safetensors.mindspore import save_file as safe_save_file
 
@@ -61,9 +62,11 @@ def _get_pt2ms_mappings(m):
     mappings = {}  # pt_param_name: (ms_param_name, pt_param_to_ms_param_func)
     for name, cell in m.cells_and_names():
         if isinstance(cell, (nn.Conv1d, nn.Conv1dTranspose)):
-            mappings[f"{name}.weight"] = f"{name}.weight", lambda x: ms.Parameter(
-                ops.expand_dims(x, axis=-2), name=x.name
-            )
+            # PR 795
+            # mappings[f"{name}.weight"] = f"{name}.weight", lambda x: ms.Parameter(
+            #     ops.expand_dims(x, axis=-2), name=x.name
+            # )
+            mappings[f"{name}.weight"] = f"{name}.weight", lambda x: ops.expand_dims(x, axis=-2)
         elif isinstance(cell, nn.Embedding):
             mappings[f"{name}.weight"] = f"{name}.embedding_table", lambda x: x
         elif isinstance(cell, (nn.BatchNorm2d, nn.LayerNorm, nn.GroupNorm)):
@@ -610,7 +613,10 @@ class ModelMixin(nn.Cell, PushToHubMixin):
             #         commit_hash=commit_hash,
             #     )
 
-            model = cls.from_config(config, **unused_kwargs)
+            # PR 795
+            # model = cls.from_config(config, **unused_kwargs)
+            with no_init_parameters():
+                model = cls.from_config(config, **unused_kwargs)
 
             # Move the model's data type conversion ahead of the weight loading process to avoid unnecessary
             # data type conversions of weights that can increase computation time in certain situations.
@@ -649,6 +655,8 @@ class ModelMixin(nn.Cell, PushToHubMixin):
             #         "error_msgs": error_msgs,
             #     }
 
+        # PR 795
+        model.init_parameters_data()
         model.register_to_config(_name_or_path=pretrained_model_name_or_path)
 
         # Set model in evaluation mode to deactivate DropOut modules by default

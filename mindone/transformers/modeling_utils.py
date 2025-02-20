@@ -54,6 +54,7 @@ from transformers.utils.hub import convert_file_size_to_int, get_checkpoint_shar
 
 import mindspore as ms
 from mindspore import Tensor, nn, ops
+from mindspore.nn.utils import no_init_parameters
 
 from .generation.utils import GenerationMixin
 from .integrations import PeftAdapterMixin
@@ -76,9 +77,11 @@ def _get_pt2ms_mappings(m):
     mappings = {}  # pt_param_name: (ms_param_name, pt_param_to_ms_param_func)
     for name, cell in m.cells_and_names():
         if isinstance(cell, (nn.Conv1d, nn.Conv1dTranspose)):
-            mappings[f"{name}.weight"] = f"{name}.weight", lambda x: ms.Parameter(
-                ops.expand_dims(x, axis=-2), name=x.name
-            )
+            # PR 795
+            # mappings[f"{name}.weight"] = f"{name}.weight", lambda x: ms.Parameter(
+            #     ops.expand_dims(x, axis=-2), name=x.name
+            # )
+            mappings[f"{name}.weight"] = f"{name}.weight", lambda x: ops.expand_dims(x, axis=-2)
         elif isinstance(cell, nn.Embedding):
             mappings[f"{name}.weight"] = f"{name}.embedding_table", lambda x: x
         elif isinstance(cell, (nn.BatchNorm2d, nn.LayerNorm, nn.GroupNorm)):
@@ -299,9 +302,13 @@ def _load_state_dict_into_model(model_to_load, state_dict, start_prefix, is_shar
     local_state = {start_prefix + k: v for k, v in model_to_load.parameters_and_names()}
     for k, v in state_dict.items():
         if k in local_state:
-            v.set_dtype(local_state[k].dtype)
+            # PR 795
+            # v.set_dtype(local_state[k].dtype)
+            state_dict[k] = ms.Parameter(v.to(local_state[k].dtype), name=k)
         else:
-            pass  # unexpect key keeps origin dtype
+            # PR 795
+            # pass  # unexpect key keeps origin dtype
+            state_dict[k] = ms.Parameter(v, name=k)  # unexpect key keeps origin dtype
     cm = silence_mindspore_logger() if is_sharded else nullcontext()
     with cm:
         ms.load_param_into_net(model_to_load, state_dict, strict_load=True)
@@ -1924,7 +1931,11 @@ class MSPreTrainedModel(nn.Cell, ModuleUtilsMixin, GenerationMixin, PushToHubMix
             config, use_flash_attention_2=use_flash_attention_2, mindspore_dtype=mindspore_dtype
         )
 
-        model = cls(config, *model_args, **model_kwargs)
+        # PR 795
+        # model = cls(config, *model_args, **model_kwargs)
+        with no_init_parameters():
+            model = cls(config, *model_args, **model_kwargs)
+
         # We cannot set default mindspore dtype. So we need to cast model weights after creating.
         if mindspore_dtype is not None:
             model = model.to(mindspore_dtype)
@@ -1972,6 +1983,9 @@ class MSPreTrainedModel(nn.Cell, ModuleUtilsMixin, GenerationMixin, PushToHubMix
                 token=token,
                 adapter_kwargs=adapter_kwargs,
             )
+
+        # PR 795
+        model.init_parameters_data()
 
         # Set model in evaluation mode to deactivate DropOut modules by default
         model.set_train(False)
