@@ -6,10 +6,10 @@ import pickle
 
 lock = threading.Lock()
 
-_tensor = np.random.randn(1000, 1000)
+array = np.random.randn(1000, 1000)
 
 
-def run(self):
+def run(_tensor):
         with lock:
             # try:
             #
@@ -26,4 +26,4 @@ def run(self):
             return response
 
 
-run()
+run(array)
