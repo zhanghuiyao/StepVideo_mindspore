@@ -64,7 +64,7 @@ class StepVaePipeline(Resource):
         # if hasattr(samples,'sample'):
         #     samples = samples.sample
 
-        samples = samples.asnumpy()
+        samples = samples.to(ms.float32).asnumpy()
 
         return samples
         
