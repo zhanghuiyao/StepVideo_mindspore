@@ -63,6 +63,6 @@ if __name__ == "__main__":
     # save video
     from stepvideo.utils.video_process import VideoProcessor
     video_processor = VideoProcessor("./results", "")
-    video_processor.postprocess_video(out.asnumpy(), output_file_name="test_video", output_type="mp4")
+    video_processor.postprocess_video(out, output_file_name="test_video", output_type="mp4")
 
     print(f"svae test_video success.")
