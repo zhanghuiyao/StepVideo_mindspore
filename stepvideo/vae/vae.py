@@ -903,9 +903,7 @@ class VideoDecoder(nn.Cell):
         self.base_group_norm_with_zero_pad = Base_group_norm_with_zero_pad(self.norm_out, spatial=spatial)
 
     # @inference_mode()
-    def construct(self, z, is_init=True):
-        import pdb;pdb.set_trace()  # zhy_test, DEBUG
-        
+    def construct(self, z, is_init=True):        
         # z = rearrange(z, "b t c h w -> b c t h w")
         z = mint.swapaxes(z, 1, 2)
 
