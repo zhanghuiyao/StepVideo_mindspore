@@ -1,3 +1,4 @@
+import time
 import mindspore as ms
 
 from stepvideo.diffusion.video_pipeline import StepVideoPipeline
@@ -23,15 +24,12 @@ if __name__ == "__main__":
     
     setup_seed(args.seed)
 
-    import time
-    print(f"pipeline loading...")
     s_time = time.time()
     pipeline = StepVideoPipeline.from_pretrained(args.model_dir).to(ms.bfloat16)
     pipeline.setup_api(
         vae_url = args.vae_url,
         caption_url = args.caption_url,
     )
-    print(f"pipeline load success, time cost: {(time.time()-s_time)/1000:.2f} min.")
     
 
     prompt = args.prompt

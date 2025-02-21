@@ -57,8 +57,8 @@ class StepVaePipeline(Resource):
         if not isinstance(samples, Tensor):
             samples = Tensor(samples)
         samples = self.vae.decode(samples.to(dtype) / self.scale_factor)
-        if hasattr(samples,'sample'):
-            samples = samples.sample
+        # if hasattr(samples,'sample'):
+        #     samples = samples.sample
         return samples
         
 
@@ -82,7 +82,7 @@ class VAEapi(Resource):
             feature = {k:v for k, v in feature.items() if v is not None}
             video_latents = self.vae_pipeline.decode(**feature)
             if isinstance(video_latents, ms.Tensor):
-                video_latents = video_latents.asnumpy()
+                video_latents = video_latents.to(ms.float32).asnumpy()
 
             response = pickle.dumps(video_latents)
 
