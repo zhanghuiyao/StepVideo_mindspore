@@ -16,7 +16,8 @@ from api.call_remote_server import CaptionPipeline, StepVaePipeline
 
 if __name__ == "__main__":
     args = parse_args()
-    
+    args.llm_dir = "step_llm"
+
     ms.set_context(
         mode=ms.PYNATIVE_MODE,
         jit_config={"jit_level": "O0"},
