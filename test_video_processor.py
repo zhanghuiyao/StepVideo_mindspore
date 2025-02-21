@@ -5,7 +5,7 @@ from stepvideo.utils.video_process import VideoProcessor
 
 def save():
 
-    vae_out = np.load("./npys/vae_output_numpy.py")
+    vae_out = np.load("./npys/vae_output_numpy.npy")
 
     # save video
     from stepvideo.utils.video_process import VideoProcessor
