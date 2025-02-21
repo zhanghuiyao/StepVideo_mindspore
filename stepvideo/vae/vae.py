@@ -72,8 +72,7 @@ class Base_group_norm_with_zero_pad(nn.Cell):
     def construct(self, x, act_silu=True, pad_size=2):
         out_shape = list(x.shape)
         out_shape[1] += pad_size
-        # out = mint.zeros(out_shape, dtype=x.dtype)  # FIXME: bug when @jit
-        out = ops.zeros(out_shape, dtype=x.dtype)
+        out = mint.zeros(out_shape, dtype=x.dtype)
         out[:, pad_size:] = self.base_group_norm(x, act_silu=act_silu, channel_last=True)
         out[:, :pad_size] = 0
         return out
@@ -1099,7 +1098,7 @@ class AutoencoderKL(nn.Cell):
         return dec
 
     # @inference_mode()
-    @ms.jit
+    # @ms.jit
     def decode(self, z):
         # b (nc cf) c h w -> (b nc) cf c h w -> decode -> (b nc) c cf h w -> b (nc cf) c h w
         chunks = list(z.split(self.latent_len, axis=1))
@@ -1129,7 +1128,11 @@ class AutoencoderKL(nn.Cell):
 
         x = self.mix(x)
 
-        x = x.to(ms.float32)
+        from stepvideo.mindspore_adapter.pynative_utils import pynative_x_to_dtype
+        # x = x.to(ms.float32)
+        x = pynative_x_to_dtype(x, ms.float32)
+
+        import pdb;pdb.set_trace()
 
         return x
 
