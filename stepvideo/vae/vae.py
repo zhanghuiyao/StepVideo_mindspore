@@ -1098,7 +1098,7 @@ class AutoencoderKL(nn.Cell):
         return dec
 
     # @inference_mode()
-    # FXIME: adapte to static graph
+    @ms.jit
     def decode(self, z):
         # b (nc cf) c h w -> (b nc) cf c h w -> decode -> (b nc) c cf h w -> b (nc cf) c h w
         chunks = list(z.split(self.latent_len, axis=1))
@@ -1123,6 +1123,9 @@ class AutoencoderKL(nn.Cell):
             x = x_[:, : chunks_total_num * self.frame_len]
 
         x = self.mix(x)
+
+        x = x.to(ms.float32)
+
         return x
 
     def mix(self, x):
