@@ -72,22 +72,22 @@ class VAEapi(Resource):
         self.vae_pipeline = vae_pipeline
         
     def get(self):
-        with lock:
-            # try:
-            #
-            # except Exception as e:
-            #     print("Caught Exception: ", e)
-            #     return Response(e)
+        # with lock:
+        #     try:
             
-            feature = pickle.loads(request.get_data())
-            feature['api'] = 'vae'
-        
-            feature = {k:v for k, v in feature.items() if v is not None}
-            video_latents = self.vae_pipeline.decode(**feature)
+        #     except Exception as e:
+        #         print("Caught Exception: ", e)
+        #         return Response(e)
+            
+        feature = pickle.loads(request.get_data())
+        feature['api'] = 'vae'
+    
+        feature = {k:v for k, v in feature.items() if v is not None}
+        video_latents = self.vae_pipeline.decode(**feature)
 
-            response = pickle.dumps(video_latents)
+        response = pickle.dumps(video_latents)
 
-            return Response(response)
+        return Response(response)
 
 
 
