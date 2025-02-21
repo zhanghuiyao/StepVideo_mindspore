@@ -60,7 +60,11 @@ class StepVaePipeline(Resource):
         dtype = next(self.vae.get_parameters()).dtype
         if not isinstance(samples, Tensor):
             samples = Tensor(samples)
-        samples = self.vae.decode(samples.to(dtype) / self.scale_factor)
+        
+        # samples = self.vae.decode(samples.to(dtype) / self.scale_factor)
+        from stepvideo.mindspore_adapter.pynative_utils import pynative_x_to_dtype
+        samples = self.vae.decode(pynative_x_to_dtype(samples, dtype) / self.scale_factor)
+
         # if hasattr(samples,'sample'):
         #     samples = samples.sample
 

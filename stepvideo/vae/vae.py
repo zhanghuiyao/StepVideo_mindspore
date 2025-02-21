@@ -18,12 +18,13 @@ import mindspore as ms
 from mindspore import nn, ops, Tensor, Parameter, mint
 from mindspore.communication.management import get_rank
 
-
-from ..mindspore_adapter.scaled_dot_product_attn import scaled_dot_product_attention
-
 from safetensors import safe_open
 from transformers.utils import is_safetensors_available
 from mindone.safetensors.mindspore import load_file as safe_load_file
+
+
+from stepvideo.mindspore_adapter.scaled_dot_product_attn import scaled_dot_product_attention
+from stepvideo.mindspore_adapter.pynative_utils import pynative_x_to_dtype
 
 
 class Base_group_norm(nn.Cell):
@@ -1128,11 +1129,8 @@ class AutoencoderKL(nn.Cell):
 
         x = self.mix(x)
 
-        from stepvideo.mindspore_adapter.pynative_utils import pynative_x_to_dtype
         # x = x.to(ms.float32)
         x = pynative_x_to_dtype(x, ms.float32)
-
-        import pdb;pdb.set_trace()
 
         return x
 
