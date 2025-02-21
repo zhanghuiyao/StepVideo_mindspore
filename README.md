@@ -106,6 +106,16 @@ python test_vae_decode.py --model_dir $model_dir --ulysses_degree 1 --pp_degree 
 ```
 
 
+#### 1.1.1. test llm
+
+```shell
+model_dir='./demo/stepfun-ai/stepvideo-t2v_mini'
+
+python test_llm.py --model_dir $model_dir --ulysses_degree 1 --pp_degree 1
+```
+
+
+
 #### 1.2. test dit
 
 

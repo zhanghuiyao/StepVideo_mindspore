@@ -297,7 +297,9 @@ class STEP1TextEncoder(nn.Cell):
         text_encoder = Step1Model.from_pretrained(model_dir)
         text_encoder.set_train(False)
         text_encoder.to(ms.bfloat16)
-        text_encoder = auto_mixed_precision(text_encoder, "O2", ms.bfloat16)
+
+        text_encoder = ms.amp.auto_mixed_precision(text_encoder, amp_level='auto', dtype=ms.float16)
+        # text_encoder = auto_mixed_precision(text_encoder, "O2", ms.bfloat16)
         self.text_encoder = text_encoder
 
     def prompts_to_tokens(self, prompts, max_length=None):
