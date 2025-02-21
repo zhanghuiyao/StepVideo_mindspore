@@ -212,8 +212,6 @@ class TransformerBlock(nn.Cell):
         cu_seqlens: Optional[Tensor],
         max_seq_len: Optional[Tensor],
     ):
-        
-        # import pdb;pdb.set_trace()
 
         residual = self.attention(
             self.attention_norm(x), mask,
@@ -222,6 +220,9 @@ class TransformerBlock(nn.Cell):
         h = x + residual
         ffn_res = self.feed_forward(self.ffn_norm(h))
         out = h + ffn_res
+
+        import pdb;pdb.set_trace()
+
         return out
 
 
