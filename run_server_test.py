@@ -74,7 +74,7 @@ if __name__ == "__main__":
             pos_magic=pos_magic,
         )
 
-        transformer_dtype = self.transformer.dtype
+        transformer_dtype = ms.bfloat16  #self.transformer.dtype
         prompt_embeds = prompt_embeds.to(transformer_dtype)
         prompt_attention_mask = prompt_attention_mask.to(transformer_dtype)
         prompt_embeds_2 = prompt_embeds_2.to(transformer_dtype)
@@ -84,24 +84,24 @@ if __name__ == "__main__":
         print(f"{prompt_attention_mask.shape=}")
 
         # 4. Prepare timesteps
-        self.scheduler.set_timesteps(
-            num_inference_steps=num_inference_steps,
-            time_shift=time_shift
-        )
+        # self.scheduler.set_timesteps(
+        #     num_inference_steps=num_inference_steps,
+        #     time_shift=time_shift
+        # )
 
         # 5. Prepare latent variables
-        num_channels_latents = self.transformer.config.in_channels
-        latents = self.prepare_latents(
-            batch_size * num_videos_per_prompt,
-            num_channels_latents,
-            height,
-            width,
-            num_frames,
-            ms.bfloat16,
-            latents,
-        )
-        print("="* 100 + "\n" + f"Step2. get latent success.")
-        print(f"{latents.shape=}")
+        # num_channels_latents = self.transformer.config.in_channels
+        # latents = self.prepare_latents(
+        #     batch_size * num_videos_per_prompt,
+        #     num_channels_latents,
+        #     height,
+        #     width,
+        #     num_frames,
+        #     ms.bfloat16,
+        #     latents,
+        # )
+        # print("="* 100 + "\n" + f"Step2. get latent success.")
+        # print(f"{latents.shape=}")
 
         # 7. Denoising loop
         # with self.progress_bar(total=num_inference_steps) as progress_bar:
@@ -135,7 +135,6 @@ if __name__ == "__main__":
         #         progress_bar.update()
 
         latents = Tensor(np.random.randn(1, 36, 64, 34, 62), ms.bfloat16)
-
         video = self.decode_vae(latents)
         print("="* 100 + "\n" + f"Step3. get video from vae server success.")
         print(f"{video.shape=}")

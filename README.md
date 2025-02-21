@@ -35,18 +35,21 @@ link: https://huggingface.co/stepfun-ai/stepvideo-t2v
 ### step 3: running
 
 ```shell
-# run vae/captioner server on single-card (Ascend910*)
-ASCEND_RT_VISIBLE_DEVICES=0 python api/call_remote_server.py --model_dir where_you_download_dir &
-
-# !!! wait...a moment, and replace the url.
-
-# run main process on multi-cards (Ascend910*)
 parallel=4
 sp=2
 pp=2
 url='127.0.0.1'
 model_dir=where_you_download_dir
 
+# run vae/captioner server on single-card (Ascend910*)
+ASCEND_RT_VISIBLE_DEVICES=0 python api/call_remote_server.py --model_dir $model_dir --enable_vae True &
+ASCEND_RT_VISIBLE_DEVICES=1 python api/call_remote_server.py --model_dir $model_dir --enable_llm True &
+
+
+# !!! wait...a moment, vae/llm is loading...
+
+
+# run main process on multi-cards (Ascend910*)
 ASCEND_RT_VISIBLE_DEVICES=4,5,6,7 msrun --bind_core=True --worker_num=$parallel --local_worker_num=$parallel --master_port=9000 --log_dir=outputs/parallel_logs python -u \
 run_parallel.py --model_dir $model_dir --vae_url $url --caption_url $url  --ulysses_degree $sp --pp_degree $pp --prompt "一名宇航员在月球上发现一块石碑，上面印有“MindSpore”字样，闪闪发光" --infer_steps 30  --cfg_scale 9.0 --time_shift 13.0 --num_frames 136 --height 544 --width 992
 ```
@@ -144,7 +147,6 @@ ASCEND_RT_VISIBLE_DEVICES=4,5,6,7 msrun --bind_core=True --worker_num=$parallel 
 ### 2. test server connect
 
 ```shell
-parallel=1
 url='127.0.0.1'
 model_dir='./demo/stepfun-ai/stepvideo-t2v_mini'
 
@@ -153,7 +155,7 @@ ASCEND_RT_VISIBLE_DEVICES=5 python api/call_remote_server.py --model_dir $model_
 ASCEND_RT_VISIBLE_DEVICES=6 python api/call_remote_server.py --model_dir $model_dir --enable_llm True &
 
 # run main process on single-cards (Ascend910*)
-ASCEND_RT_VISIBLE_DEVICES=7 python run_server_test.py --model_dir $model_dir --vae_url $url --caption_url $url  --ulysses_degree $parallel --prompt "一名宇航员在月球上发现一块石碑，上面印有“MindSpore”字样，闪闪发光" --infer_steps 5  --cfg_scale 9.0 --time_shift 13.0 --num_frames 16
+ASCEND_RT_VISIBLE_DEVICES=7 python run_server_test.py --model_dir $model_dir --vae_url $url --caption_url $url  --ulysses_degree 1 --pp_degree 1 --prompt "一名宇航员在月球上发现一块石碑，上面印有“MindSpore”字样，闪闪发光" --infer_steps 5  --cfg_scale 9.0 --time_shift 13.0 --num_frames 16
 ```
 
 
