@@ -103,7 +103,7 @@ class Base_conv3d(nn.Cell):
 
     def construct(self, x, channel_last=False, residual=None, only_return_output=False):
         if only_return_output:
-            size = cal_outsize(x.shape, self.conv_layer.weight.shape, self.conv_layer.stride, padding=ops_padding)
+            size = cal_outsize(x.shape, self.conv_layer.weight.shape, self.conv_layer.stride, padding=self.conv_layer.padding)
             return mint.zeros(size, dtype=x.dtype)
         if channel_last:
             x = mint.permute(x, (0, 4, 1, 2, 3))  # NDHWC to NCDHW
