@@ -1022,7 +1022,8 @@ class AutoencoderKL(nn.Cell):
         # FXIME: comment for test
         if model_path is not None:
             weight_dict = self.init_from_ckpt(model_path)
-            self.load_from_dict(weight_dict)
+            ms.load_param_into_net(self, weight_dict)
+            # self.load_from_dict(weight_dict)
 
         self.convert_channel_last()
 
@@ -1080,19 +1081,19 @@ class AutoencoderKL(nn.Cell):
         #         f"Only supports deserialization of weights file in safetensors format, but got {checkpoint_file}"
         #     )
 
-    def load_from_dict(self, state_dict, start_prefix=""):
+    # def load_from_dict(self, state_dict, start_prefix=""):
 
-        from mindone.transformers.modeling_utils import _convert_state_dict
+    #     from mindone.transformers.modeling_utils import _convert_state_dict
 
-        state_dict_ms = _convert_state_dict(self, state_dict, prefix="")
+    #     state_dict_ms = _convert_state_dict(self, state_dict, prefix="")
 
-        local_state = {start_prefix + k: v for k, v in self.parameters_and_names()}
-        for k, v in state_dict.items():
-            if k in local_state:
-                v.set_dtype(local_state[k].dtype)
-            else:
-                pass  # unexpect key keeps origin dtype
-        ms.load_param_into_net(self, state_dict_ms, strict_load=True)
+    #     local_state = {start_prefix + k: v for k, v in self.parameters_and_names()}
+    #     for k, v in state_dict.items():
+    #         if k in local_state:
+    #             v.set_dtype(local_state[k].dtype)
+    #         else:
+    #             pass  # unexpect key keeps origin dtype
+    #     ms.load_param_into_net(self, state_dict_ms, strict_load=True)
 
     def convert_channel_last(self):
         #Conv2d NCHW->NHWC
