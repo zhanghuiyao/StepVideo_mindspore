@@ -1050,7 +1050,7 @@ class AutoencoderKL(nn.Cell):
                 if k.startswith("decoder.conv_out."):
                     k = k.replace("decoder.conv_out.", "decoder.conv_out.conv.")
                 assert isinstance(tensor, np.ndarray)
-                p[k] = ms.from_numpy(tensor)
+                p[k] = Parameter(tensor)
         return p
 
         # 3. old
