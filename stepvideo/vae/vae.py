@@ -149,6 +149,8 @@ class Base_conv3d_channel_last(nn.Cell):
             else:
                 out_nhwc = residual
 
+            import pdb;pdb.set_trace()
+
             assert B == 1
             outs = []
             for i in range(chunks):
