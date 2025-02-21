@@ -813,6 +813,10 @@ class Upsample3D(nn.Cell):
     def construct(self, x, is_init=True, is_split=True):
         b, c, t, h, w = x.shape
 
+        # for interpolate op
+        _dtype = x.dtype
+        x = x.to(ms.float32)
+
         import pdb;pdb.set_trace()
 
         # x = x.permute(0,2,3,4,1).contiguous().permute(0,4,1,2,3).to(memory_format=torch.channels_last_3d)
@@ -825,6 +829,8 @@ class Upsample3D(nn.Cell):
         else:
             x = mint.nn.functional.interpolate(x, scale_factor=self.scale_factor)
             # x = ops.interpolate(x, size=(int(x.shape[-3]*self.scale_factor), int(x.shape[-2]*self.scale_factor), int(x.shape[-1]*self.scale_factor)))
+
+        x = x.to(_dtype)
 
         x = self.conv3d(x, is_init)
         return x
