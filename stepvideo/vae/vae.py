@@ -1019,10 +1019,9 @@ class AutoencoderKL(nn.Cell):
         )
 
         # FXIME: comment for test
-        # if model_path is not None:
-        #     weight_dict = self.init_from_ckpt(model_path)
-        # if len(weight_dict) != 0:
-        #     self.load_from_dict(weight_dict)
+        if model_path is not None:
+            weight_dict = self.init_from_ckpt(model_path)
+            self.load_from_dict(weight_dict)
 
         self.convert_channel_last()
 
