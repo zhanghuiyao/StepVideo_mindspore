@@ -111,7 +111,7 @@ python test_vae_decode.py --model_dir $model_dir --ulysses_degree 1 --pp_degree 
 ```shell
 model_dir='./demo/stepfun-ai/stepvideo-t2v_mini'
 
-python test_llm.py --model_dir $model_dir --ulysses_degree 1 --pp_degree 1
+python test_llm.py --model_dir $model_dir --ulysses_degree 1 --pp_degree 1 --prompt "一名宇航员在月球上发现一块石碑，上面印有“MindSpore”字样，闪闪发光"
 ```
 
 
