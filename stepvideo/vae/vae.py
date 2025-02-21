@@ -150,23 +150,23 @@ class Base_conv3d_channel_last(nn.Cell):
                 out_nhwc = residual
 
             assert B == 1
-            # outs = []
-            # for i in range(chunks):
-            #     if i == chunks-1:
-            #         xi = x[:1,chunk_size*i:]
-            #         out_nhwci = out_nhwc[:1,chunk_size*i:]
-            #     else:
-            #         xi = x[:1,chunk_size*i:chunk_size*(i+1)+K-1]
-            #         out_nhwci = out_nhwc[:1,chunk_size*i:chunk_size*(i+1)]
-            #     if residual is not None:
-            #         if i == chunks-1:
-            #             ri = residual[:1,chunk_size*i:]
-            #         else:
-            #             ri = residual[:1,chunk_size*i:chunk_size*(i+1)]
-            #     else:
-            #         ri = None
-            #     # out_nhwci.copy_(self.base_conv3d(xi, channel_last=True, residual=ri))
-            #     out_nhwci = self.base_conv3d(xi, channel_last=True, residual=ri)
+            outs = []
+            for i in range(chunks):
+                if i == chunks-1:
+                    xi = x[:1,chunk_size*i:]
+                    out_nhwci = out_nhwc[:1,chunk_size*i:]
+                else:
+                    xi = x[:1,chunk_size*i:chunk_size*(i+1)+K-1]
+                    out_nhwci = out_nhwc[:1,chunk_size*i:chunk_size*(i+1)]
+                if residual is not None:
+                    if i == chunks-1:
+                        ri = residual[:1,chunk_size*i:]
+                    else:
+                        ri = residual[:1,chunk_size*i:chunk_size*(i+1)]
+                else:
+                    ri = None
+                # out_nhwci.copy_(self.base_conv3d(xi, channel_last=True, residual=ri))
+                out_nhwci = self.base_conv3d(xi, channel_last=True, residual=ri)
         else:
             out_nhwc = self.base_conv3d(x, channel_last=True, residual=residual)
         return out_nhwc
