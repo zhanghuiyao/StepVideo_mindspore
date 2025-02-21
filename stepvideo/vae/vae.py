@@ -1103,7 +1103,10 @@ class AutoencoderKL(nn.Cell):
         # b (nc cf) c h w -> (b nc) cf c h w -> decode -> (b nc) c cf h w -> b (nc cf) c h w
         chunks = list(z.split(self.latent_len, axis=1))
 
+        # for @jit
         max_num_per_rank = None
+        chunks_total_num = None
+
         if self.world_size > 1:
             chunks_total_num = len(chunks)
             max_num_per_rank = (chunks_total_num + self.world_size - 1) // self.world_size
