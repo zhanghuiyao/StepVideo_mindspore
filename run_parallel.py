@@ -22,12 +22,17 @@ if __name__ == "__main__":
     initialize_parall_group(args, ring_degree=args.ring_degree, ulysses_degree=args.ulysses_degree)
     
     setup_seed(args.seed)
-        
+
+    import time
+    print(f"pipeline loading...")
+    s_time = time.time()
     pipeline = StepVideoPipeline.from_pretrained(args.model_dir).to(ms.bfloat16)
     pipeline.setup_api(
         vae_url = args.vae_url,
         caption_url = args.caption_url,
     )
+    print(f"pipeline load success, time cost: {(time.time()-s_time)/1000:.2f} min.")
+    
 
     prompt = args.prompt
     videos = pipeline(
