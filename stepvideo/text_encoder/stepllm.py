@@ -70,6 +70,8 @@ class MultiQueryAttention(nn.Cell):
         cu_seqlens: Optional[Tensor],
         max_seq_len: Optional[Tensor],
     ):
+        import pdb;pdb.set_trace()
+
         seqlen, bsz, dim = x.shape
         xqkv = self.wqkv(x)
 
