@@ -78,7 +78,7 @@ class Base_group_norm_with_zero_pad(nn.Cell):
         # out = mint.zeros(out_shape, dtype=x.dtype)
         _out = ()
         for i in range(out_shape[0]):
-            _out += ops.zeros(out_shape[1:], dtype=x.dtype)
+            _out += (ops.zeros(out_shape[1:], dtype=x.dtype),)
         out = ops.stack(_out, axis=0)
         
         out[:, pad_size:] = self.base_group_norm(x, act_silu=act_silu, channel_last=True)
