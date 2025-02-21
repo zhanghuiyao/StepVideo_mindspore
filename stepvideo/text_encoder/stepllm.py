@@ -18,7 +18,7 @@ from typing import Optional
 import mindspore as ms
 from mindspore import nn, ops, Tensor, Parameter, mint
 
-from stepvideo.text_encoder.flashattention import FlashSelfAttention
+from stepvideo.text_encoder.flashattention import FlashSelfAttention, StepAttention
 from stepvideo.modules.normalization import RMSNorm
 from stepvideo.text_encoder.tokenizer import LLaMaEmbedding, Wrapped_StepChatTokenizer
 
@@ -59,8 +59,9 @@ class MultiQueryAttention(nn.Cell):
         )
 
         assert self.use_flash_attention, 'non-Flash attention not supported yet.'
-        self.core_attention = FlashSelfAttention(self.head_dim, self.n_local_heads, attention_dropout=cfg.attention_dropout, dtype=ms.bfloat16)  # FIXME: dtype=ms.bfloat16
-        
+        # self.core_attention = FlashSelfAttention(self.head_dim, self.n_local_heads, attention_dropout=cfg.attention_dropout, dtype=ms.bfloat16)  # FIXME: dtype=ms.bfloat16
+        self.core_attention = StepAttention()
+
         self.layer_id = layer_id
 
     def construct(
@@ -70,7 +71,7 @@ class MultiQueryAttention(nn.Cell):
         cu_seqlens: Optional[Tensor],
         max_seq_len: Optional[Tensor],
     ):
-        import pdb;pdb.set_trace()
+        # import pdb;pdb.set_trace()
 
         seqlen, bsz, dim = x.shape
         xqkv = self.wqkv(x)
@@ -212,7 +213,7 @@ class TransformerBlock(nn.Cell):
         max_seq_len: Optional[Tensor],
     ):
         
-        import pdb;pdb.set_trace()
+        # import pdb;pdb.set_trace()
 
         residual = self.attention(
             self.attention_norm(x), mask,

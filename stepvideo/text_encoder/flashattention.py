@@ -11,25 +11,62 @@
 # copies or substantial portions of the Software.
 # ==============================================================================
 
+import math
 import mindspore as ms
 from mindspore import nn, ops, Tensor, Parameter, mint
 
-from mindone.transformers.mindspore_adapter.attention import FlashAttention2
+from mindone.transformers.mindspore_adapter.attention import FlashAttention2, DTYPE_FP16_MIN
+from stepvideo.mindspore_adapter.scaled_dot_product_attn import scaled_dot_product_attention
 
 
-class FlashSelfAttention(FlashAttention2):
-    def __init__(self, head_dim, head_num, attention_dropout = 0, dtype = ms.float16):
-        super().__init__(head_dim, head_num, attention_dropout, input_layout="BNSD", dtype=dtype)
-    
-    def construct(self, q, k, v, cu_seqlens=None, max_seq_len=None, mask=None):
-        # BSND -> BNSD
-        q = mint.swapaxes(q, 1, 2)
-        k = mint.swapaxes(k, 1, 2)
-        v = mint.swapaxes(v, 1, 2)
+class FlashSelfAttention(nn.Cell):
+    def __init__(self, *args, **kwargs):
+        raise NotImplementedError("mindspore fa do not support custom-flaot mask.")
+        
 
-        output = super().construct(q, k, v, mask)
 
-        # BNSD -> BSND
-        output = mint.swapaxes(output, 1, 2)
+# refer to:
+# https://huggingface.co/stepfun-ai/Step-Audio-Chat/commit/aa82b184aa5ec627ef94545daa7a661711e83596#d2h-542184
+# https://huggingface.co/stepfun-ai/Step-Audio-TTS-3B/blob/main/modeling_step1.py
 
-        return output
+class StepAttention(nn.Cell):
+
+    def construct(self, q, k, v, cu_seqlens=None, max_seq_len=None):
+        # b s h d
+        _mask = self.build_alibi_cache(k.shape[1], q.shape[2], q.dtype)[:, :, -q.shape[1] :, :]
+        
+        # b s h d -> b h s d
+        q = q.swapaxes(1, 2)  
+        k = k.swapaxes(1, 2)
+        v = v.swapaxes(1, 2)
+        
+        attn_output = scaled_dot_product_attention(
+            q, k, v, attn_mask=_mask
+        )
+
+        # b h s d -> b s h d
+        attn_output = attn_output.swapaxes(1, 2)   
+
+        return attn_output
+
+    def build_alibi_cache(self, block_size, n_heads, dtype):
+        # get slopes
+        n = 2 ** math.floor(math.log2(n_heads))  # nearest 2**n to n_heads
+        m0 = 2.0 ** (-8.0 / n)
+        # 2^(-8/n), 2^(-8*2/n), 2^(-8*3/n), ...
+        slopes = ops.pow(m0, ops.arange(1, n + 1))
+        if n < n_heads:
+            m1 = 2.0 ** (-4.0 / n)
+            # 2^(-8/(2n)), 2^(-8*3/(2n)), 2^(-8*5/(2n)), ...
+            mm = ops.pow(m1, ops.arange(1, 1 + 2 * (n_heads - n), 2))
+            slopes = ops.cat([slopes, mm])
+
+        tril = ops.tril(ops.ones((1, 1, block_size, block_size), dtype=ms.bool_)).to(ms.int32)
+
+        bias_rows = ops.arange(block_size).view(1, -1)
+        bias_cols = ops.arange(block_size).view(-1, 1)
+        bias = -ops.sqrt(bias_cols - bias_rows)
+        bias = bias.view(1, block_size, block_size) * slopes.view(-1, 1, 1)
+        bias = bias.masked_fill(tril == 0, DTYPE_FP16_MIN)
+
+        return bias.type(dtype)
