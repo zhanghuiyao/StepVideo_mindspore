@@ -149,8 +149,6 @@ class Base_conv3d_channel_last(nn.Cell):
             else:
                 out_nhwc = residual
 
-            import pdb;pdb.set_trace()
-
             assert B == 1
             outs = []
             for i in range(chunks):
@@ -167,8 +165,8 @@ class Base_conv3d_channel_last(nn.Cell):
                         ri = residual[:1,chunk_size*i:chunk_size*(i+1)]
                 else:
                     ri = None
-                # out_nhwci.copy_(self.base_conv3d(xi, channel_last=True, residual=ri))
-                out_nhwci = self.base_conv3d(xi, channel_last=True, residual=ri)
+                out_nhwci.copy_(self.base_conv3d(xi, channel_last=True, residual=ri))
+                # out_nhwci = self.base_conv3d(xi, channel_last=True, residual=ri)  # error
         else:
             out_nhwc = self.base_conv3d(x, channel_last=True, residual=residual)
         return out_nhwc
