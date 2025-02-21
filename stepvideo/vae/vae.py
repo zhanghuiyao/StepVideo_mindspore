@@ -1029,7 +1029,7 @@ class AutoencoderKL(nn.Cell):
 
     def init_from_ckpt(self, model_path):
         
-        # original
+        # 1. original
         # from safetensors import safe_open
         # p = {}
         # with safe_open(model_path, framework="pt", device="cpu") as f:
@@ -1040,29 +1040,41 @@ class AutoencoderKL(nn.Cell):
         #         p[k] = tensor
         # return p
 
-        if model_path.endswith(".safetensors") and is_safetensors_available():
-            # Check format of the archive
-            with safe_open(model_path, framework="np") as f:
-                metadata = f.metadata()
-            if metadata.get("format") not in ["pt", "tf", "flax", "np"]:
-                raise OSError(
-                    f"The safetensors archive passed at {model_path} does not contain the valid metadata. Make sure "
-                    "you save your model with the `save_pretrained` method."
-                )
-            state_dict = safe_load_file(model_path)
-
-            # filter `decoder.conv_out`
-            for k in state_dict.keys().copy():
+        # 2. fix
+        from safetensors import safe_open
+        p = {}
+        with safe_open(model_path, framework="np", device="cpu") as f:
+            for k in f.keys():
+                tensor = f.get_tensor(k)
                 if k.startswith("decoder.conv_out."):
-                    new_k = k.replace("decoder.conv_out.", "decoder.conv_out.conv.")
-                    state_dict[new_k] = state_dict.pop(k)
-            
-            return state_dict
+                    k = k.replace("decoder.conv_out.", "decoder.conv_out.conv.")
+                p[k] = tensor
+        return p
 
-        else:
-            raise NotImplementedError(
-                f"Only supports deserialization of weights file in safetensors format, but got {checkpoint_file}"
-            )
+        # 3. old
+        # if model_path.endswith(".safetensors") and is_safetensors_available():
+        #     # Check format of the archive
+        #     with safe_open(model_path, framework="np") as f:
+        #         metadata = f.metadata()
+        #     if metadata.get("format") not in ["pt", "tf", "flax", "np"]:
+        #         raise OSError(
+        #             f"The safetensors archive passed at {model_path} does not contain the valid metadata. Make sure "
+        #             "you save your model with the `save_pretrained` method."
+        #         )
+        #     state_dict = safe_load_file(model_path)
+
+        #     # filter `decoder.conv_out`
+        #     for k in state_dict.keys().copy():
+        #         if k.startswith("decoder.conv_out."):
+        #             new_k = k.replace("decoder.conv_out.", "decoder.conv_out.conv.")
+        #             state_dict[new_k] = state_dict.pop(k)
+            
+        #     return state_dict
+
+        # else:
+        #     raise NotImplementedError(
+        #         f"Only supports deserialization of weights file in safetensors format, but got {checkpoint_file}"
+        #     )
 
     def load_from_dict(self, state_dict, start_prefix=""):
 
