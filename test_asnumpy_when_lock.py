@@ -1,13 +1,15 @@
 import mindspore as ms
+from mindspore import Tensor
 import numpy as np
 import threading
-
+import pickle
 
 lock = threading.Lock()
 
-_tensor = ms.Tensor
+_tensor = np.random.randn(1000, 1000)
 
-def get(self):
+
+def run(self):
         with lock:
             # try:
             #
@@ -15,13 +17,13 @@ def get(self):
             #     print("Caught Exception: ", e)
             #     return Response(e)
             
-            feature = pickle.loads(request.get_data())
-            feature['api'] = 'vae'
-        
-            feature = {k:v for k, v in feature.items() if v is not None}
-            video_latents = self.vae_pipeline.decode(**feature)
 
-            response = pickle.dumps(video_latents)
+            _tensor = Tensor(_tensor).to(ms.bfloat16)
+            _tensor *= 2.0
 
-            return Response(response)
+            response = pickle.dumps(_tensor.to(ms.float32).asnumpy())
 
+            return response
+
+
+run()
