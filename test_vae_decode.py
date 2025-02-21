@@ -31,12 +31,12 @@ if __name__ == "__main__":
     
     setup_seed(args.seed)
         
-    pipeline = StepVideoPipeline.from_pretrained(args.model_dir).to(ms.bfloat16)
-    pipeline.setup_api(
-        vae_url = args.vae_url,
-        caption_url = args.caption_url,
-    )
-    
+    # pipeline = StepVideoPipeline.from_pretrained(args.model_dir).to(ms.bfloat16)
+    # pipeline.setup_api(
+    #     vae_url = args.vae_url,
+    #     caption_url = args.caption_url,
+    # )
+
 
     vae_pipeline = StepVaePipeline(
         vae_dir=os.path.join(args.model_dir, "vae")
@@ -59,3 +59,10 @@ if __name__ == "__main__":
 
     print(f"{out.shape=}")
     
+
+    # save video
+    from stepvideo.utils.video_process import VideoProcessor
+    video_processor = VideoProcessor("./results", "")
+    video_processor.postprocess_video(out.asnumpy(), output_file_name="test_video", output_type="mp4")
+
+    print(f"svae test_video success.")
