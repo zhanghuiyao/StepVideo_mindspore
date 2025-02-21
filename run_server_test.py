@@ -83,6 +83,8 @@ if __name__ == "__main__":
         print(f"{prompt_embeds_2.shape=}")
         print(f"{prompt_attention_mask.shape=}")
 
+        import pdb;pdb.set_trace()
+
         # 4. Prepare timesteps
         # self.scheduler.set_timesteps(
         #     num_inference_steps=num_inference_steps,
