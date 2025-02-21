@@ -209,6 +209,9 @@ class TransformerBlock(nn.Cell):
         cu_seqlens: Optional[Tensor],
         max_seq_len: Optional[Tensor],
     ):
+        
+        import pdb;pdb.set_trace()
+
         residual = self.attention(
             self.attention_norm(x), mask,
             cu_seqlens, max_seq_len
@@ -250,8 +253,6 @@ class Transformer(nn.Cell):
 
         # if max_seq_len is not None and not isinstance(max_seq_len, Tensor):
         #     max_seq_len = Tensor(max_seq_len, dtype=ms.int32)
-
-        import pdb;pdb.set_trace()
 
         for lid, layer in enumerate(self.layers):
             hidden_states = layer(
