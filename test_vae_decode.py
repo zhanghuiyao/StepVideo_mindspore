@@ -54,8 +54,14 @@ if __name__ == "__main__":
 
         return samples
 
-    x = Tensor(np.random.randn(1, 36, 64, 34, 62))
+
+    # x = Tensor(np.random.randn(1, 36, 64, 34, 62))
+    x = np.load("npys/vae_input_numpy.npy")
+    
     out = decode_vae(x)
+
+    np.save("results/vae_output_numpy.npy", out)
+    print(f"save success, results/vae_output_numpy.npy, {out.shape=}")
 
     print(f"{out.shape=}")
     
