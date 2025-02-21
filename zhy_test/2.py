@@ -1,4 +1,6 @@
-import mindspore as ms
+import numpy as np
+
+import torch
 
 from stepvideo.diffusion.video_pipeline import StepVideoPipeline
 from stepvideo.config import parse_args
@@ -9,30 +11,21 @@ from stepvideo.parallel import initialize_parall_group
 # for test
 import numpy as np
 from typing import Optional, Union, List
-from mindspore import nn, ops, Tensor, Parameter
 
 
 if __name__ == "__main__":
     args = parse_args()
     
-    ms.set_context(
-        mode=ms.PYNATIVE_MODE,
-        jit_config={"jit_level": "O0"},
-        deterministic="ON",
-        pynative_synchronize=True,
-        memory_optimize_level="O1",
-        # max_device_memory="59GB",
-        # jit_syntax_level=ms.STRICT,
-    )
+    # initialize_parall_group(args, ring_degree=args.ring_degree, ulysses_degree=args.ulysses_degree)
     
-    initialize_parall_group(args, ring_degree=args.ring_degree, ulysses_degree=args.ulysses_degree)
-    
+    device = torch.device("cuda:0")
+
     setup_seed(args.seed)
     
     import time
     print("building pipeline...")
     _t = time.time()
-    pipeline = StepVideoPipeline.from_pretrained(args.model_dir).to(ms.bfloat16)
+    pipeline = StepVideoPipeline.from_pretrained(args.model_dir).to(torch.bfloat16)
     print(f"build pipeline success, time cost: {(time.time()-_t)/60:.2f} min")
 
     pipeline.setup_api(
@@ -53,7 +46,7 @@ if __name__ == "__main__":
         pos_magic: str = "",
         num_videos_per_prompt: Optional[int] = 1,
         # TODO: add numpy generator
-        latents: Optional[Tensor] = None,
+        latents: Optional[torch.Tensor] = None,
         output_type: Optional[str] = "mp4",
         output_file_name: Optional[str] = "",
         return_dict: bool = True,
@@ -86,9 +79,9 @@ if __name__ == "__main__":
         # print(f"{prompt_attention_mask.shape=}")
 
         transformer_dtype = self.transformer.dtype
-        prompt_embeds = Tensor(np.random.randn(2, 320, 6144), transformer_dtype)
-        prompt_attention_mask = Tensor(np.random.randn(2, 397), transformer_dtype)
-        prompt_embeds_2 = Tensor(np.random.randn(2, 77, 1024), transformer_dtype)
+        prompt_embeds = torch.Tensor(np.random.randn(2, 320, 6144)).to(transformer_dtype).to("cuda:0")
+        prompt_attention_mask = torch.Tensor(np.ones((2, 397))).to(transformer_dtype).to("cuda:0")
+        prompt_embeds_2 = torch.Tensor(np.random.randn(2, 77, 1024)).to(transformer_dtype).to("cuda:0")
 
 
         # 4. Prepare timesteps
@@ -105,7 +98,7 @@ if __name__ == "__main__":
             height,
             width,
             num_frames,
-            ms.bfloat16,
+            torch.bfloat16,
             latents,
         )
         print("="* 100 + "\n" + f"Step2. get latent success.")
@@ -114,7 +107,7 @@ if __name__ == "__main__":
         # 7. Denoising loop
         # with self.progress_bar(total=num_inference_steps) as progress_bar:
         #     for i, t in enumerate(self.scheduler.timesteps):
-        #         latent_model_input = ops.cat([latents] * 2) if do_classifier_free_guidance else latents
+        #         latent_model_input = torch.cat([latents] * 2) if do_classifier_free_guidance else latents
         #         latent_model_input = latent_model_input.to(transformer_dtype)
         #         # broadcast to batch dimension in a way that's compatible with ONNX/Core ML
                 
@@ -143,22 +136,29 @@ if __name__ == "__main__":
         #         progress_bar.update()
 
 
-
         # 7.1 run onece
         t = self.scheduler.timesteps[0]
-        latent_model_input = ops.cat([latents] * 2) if do_classifier_free_guidance else latents
+        latent_model_input = torch.cat([latents] * 2) if do_classifier_free_guidance else latents
         latent_model_input = latent_model_input.to(transformer_dtype)
         # broadcast to batch dimension in a way that's compatible with ONNX/Core ML
         timestep = t.broadcast_to((latent_model_input.shape[0],)).to(latent_model_input.dtype)
+        
 
-
+        # numpy save
+        # np.save("./latent_model_input.npy", latent_model_input.detach().cpu().to(torch.float32).numpy())
+        # np.save("./timestep.npy", timestep.detach().cpu().to(torch.float32).numpy())
+        # np.save("./prompt_embeds.npy", prompt_embeds.detach().cpu().to(torch.float32).numpy())
+        # np.save("./prompt_attention_mask.npy", prompt_attention_mask.detach().cpu().to(torch.float32).numpy())
+        # np.save("./prompt_embeds_2.npy", prompt_embeds_2.detach().cpu().to(torch.float32).numpy())
+        # print(f"tensors original dtype is: {[x.dtype for x in (latent_model_input, timestep, prompt_embeds, prompt_attention_mask, prompt_embeds_2)]}")
+        # return
+        
         # numpy load
-        latent_model_input = Tensor(np.load("./latent_model_input.npy")).to(ms.bfloat16)
-        timestep = Tensor(np.load("./timestep.npy")).to(ms.bfloat16)
-        prompt_embeds = Tensor(np.load("./prompt_embeds.npy")).to(ms.bfloat16)
-        prompt_attention_mask = Tensor(np.load("./prompt_attention_mask.npy")).to(ms.bfloat16)
-        prompt_embeds_2 = Tensor(np.load("./prompt_embeds_2.npy")).to(ms.bfloat16)
-
+        latent_model_input = torch.tensor(np.load("./latent_model_input.npy")).to(torch.bfloat16).to("cuda:0")
+        timestep = torch.tensor(np.load("./timestep.npy")).to(torch.bfloat16).to("cuda:0")
+        prompt_embeds = torch.tensor(np.load("./prompt_embeds.npy")).to(torch.bfloat16).to("cuda:0")
+        prompt_attention_mask = torch.tensor(np.load("./prompt_attention_mask.npy")).to(torch.bfloat16).to("cuda:0")
+        prompt_embeds_2 = torch.tensor(np.load("./prompt_embeds_2.npy")).to(torch.bfloat16).to("cuda:0")
 
 
         noise_pred = self.transformer(

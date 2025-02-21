@@ -57,10 +57,10 @@ run_parallel.py --model_dir $model_dir --vae_url $url --caption_url $url  --ulys
 
 ## performence
 
-|     Model    |  height/width/frame |  Peak Memory | 50 steps w flash-attn |
-|:------------:|:------------:|:------------:|:------------:|
-| Step-Video-T2V   |        544px992px204f      |  45.83 GB | ~ 68 min |
-| Step-Video-T2V   |        544px992px136f      |  - GB | - min |
+|     Model    |  height/width/frame |  Peak Memory | 50 steps w flash-attn | 50 steps w/o flash-attn |
+|:------------:|:------------:|:------------:|:------------:|:------------:|
+| Step-Video-T2V   |        544px992px204f      |  45.83 GB | not support | ~ 68 min |
+| Step-Video-T2V   |        544px992px136f      |  - GB | not support | - min |
 
 
 
