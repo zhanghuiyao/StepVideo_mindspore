@@ -31,6 +31,10 @@ link: https://huggingface.co/stepfun-ai/stepvideo-t2v
 
 `pytorch_model.bin` -> `model.safetensors`
 
+```shell
+python convert.py --pt_filename where_pt_dir --sf_filename where_safetensors_dir --config_path where_config.json_dir
+```
+
 
 ### step 3: running
 
