@@ -12,6 +12,7 @@
 # ==============================================================================
 
 import inspect
+import numpy as np
 from typing import Optional
 
 import mindspore as ms
@@ -1041,14 +1042,15 @@ class AutoencoderKL(nn.Cell):
         # return p
 
         # 2. fix
-        from safetensors import safe_open
         p = {}
         with safe_open(model_path, framework="np", device="cpu") as f:
             for k in f.keys():
                 tensor = f.get_tensor(k)
                 if k.startswith("decoder.conv_out."):
                     k = k.replace("decoder.conv_out.", "decoder.conv_out.conv.")
-                p[k] = tensor
+                
+                assert isinstance(tensor, np.ndarray)
+                p[k] = ms.from_numpy(tensor)
         return p
 
         # 3. old
