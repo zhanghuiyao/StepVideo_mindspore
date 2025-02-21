@@ -75,11 +75,11 @@ class Base_group_norm_with_zero_pad(nn.Cell):
         out_shape[1] += pad_size
 
         # FIXME: @jit bug
-        # out = mint.zeros(out_shape, dtype=x.dtype)
-        _out = ()
-        for i in range(out_shape[0]):
-            _out += (ops.zeros(out_shape[1:], dtype=x.dtype),)
-        out = ops.stack(_out, axis=0)
+        out = mint.zeros(out_shape, dtype=x.dtype)
+        # _out = ()
+        # for i in range(out_shape[0]):
+        #     _out += (ops.zeros(out_shape[1:], dtype=x.dtype),)
+        # out = ops.stack(_out, axis=0)
         
         out[:, pad_size:] = self.base_group_norm(x, act_silu=act_silu, channel_last=True)
         out[:, :pad_size] = 0
@@ -897,6 +897,8 @@ class VideoDecoder(nn.Cell):
 
     # @inference_mode()
     def construct(self, z, is_init=True):
+        import pdb;pdb.set_trace()  # zhy_test, DEBUG
+        
         # z = rearrange(z, "b t c h w -> b c t h w")
         z = mint.swapaxes(z, 1, 2)
 
@@ -1106,7 +1108,7 @@ class AutoencoderKL(nn.Cell):
         return dec
 
     # @inference_mode()
-    @ms.jit
+    # @ms.jit
     def decode(self, z):
         # b (nc cf) c h w -> (b nc) cf c h w -> decode -> (b nc) c cf h w -> b (nc cf) c h w
         chunks = list(z.split(self.latent_len, axis=1))
