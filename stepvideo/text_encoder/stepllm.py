@@ -221,7 +221,7 @@ class TransformerBlock(nn.Cell):
         ffn_res = self.feed_forward(self.ffn_norm(h))
         out = h + ffn_res
 
-        import pdb;pdb.set_trace()
+        # import pdb;pdb.set_trace()
 
         return out
 
