@@ -7,8 +7,10 @@ from stepvideo.parallel import initialize_parall_group
 
 
 # for test
+import numpy as np
 from typing import Optional, Union, List
 from mindspore import nn, ops, Tensor, Parameter
+
 
 
 if __name__ == "__main__":
@@ -28,7 +30,8 @@ if __name__ == "__main__":
     
     setup_seed(args.seed)
         
-    pipeline = StepVideoPipeline.from_pretrained(args.model_dir).to(ms.bfloat16)
+    # pipeline = StepVideoPipeline.from_pretrained(args.model_dir).to(ms.bfloat16)
+    pipeline = StepVideoPipeline(transformer=None, scheduler=None).to(ms.bfloat16)
     pipeline.setup_api(
         vae_url = args.vae_url,
         caption_url = args.caption_url,
@@ -101,35 +104,37 @@ if __name__ == "__main__":
         print(f"{latents.shape=}")
 
         # 7. Denoising loop
-        with self.progress_bar(total=num_inference_steps) as progress_bar:
-            for i, t in enumerate(self.scheduler.timesteps):
-                latent_model_input = ops.cat([latents] * 2) if do_classifier_free_guidance else latents
-                latent_model_input = latent_model_input.to(transformer_dtype)
-                # broadcast to batch dimension in a way that's compatible with ONNX/Core ML
+        # with self.progress_bar(total=num_inference_steps) as progress_bar:
+        #     for i, t in enumerate(self.scheduler.timesteps):
+        #         latent_model_input = ops.cat([latents] * 2) if do_classifier_free_guidance else latents
+        #         latent_model_input = latent_model_input.to(transformer_dtype)
+        #         # broadcast to batch dimension in a way that's compatible with ONNX/Core ML
                 
-                timestep = t.broadcast_to((latent_model_input.shape[0],)).to(latent_model_input.dtype)
+        #         timestep = t.broadcast_to((latent_model_input.shape[0],)).to(latent_model_input.dtype)
 
-                noise_pred = self.transformer(
-                    hidden_states=latent_model_input,
-                    timestep=timestep,
-                    encoder_hidden_states=prompt_embeds,
-                    encoder_attention_mask=prompt_attention_mask,
-                    encoder_hidden_states_2=prompt_embeds_2,
-                    return_dict=False,
-                )
-                # perform guidance
-                if do_classifier_free_guidance:
-                    noise_pred_text, noise_pred_uncond = noise_pred.chunk(2)
-                    noise_pred = noise_pred_uncond + guidance_scale * (noise_pred_text - noise_pred_uncond)
+        #         noise_pred = self.transformer(
+        #             hidden_states=latent_model_input,
+        #             timestep=timestep,
+        #             encoder_hidden_states=prompt_embeds,
+        #             encoder_attention_mask=prompt_attention_mask,
+        #             encoder_hidden_states_2=prompt_embeds_2,
+        #             return_dict=False,
+        #         )
+        #         # perform guidance
+        #         if do_classifier_free_guidance:
+        #             noise_pred_text, noise_pred_uncond = noise_pred.chunk(2)
+        #             noise_pred = noise_pred_uncond + guidance_scale * (noise_pred_text - noise_pred_uncond)
 
-                # compute the previous noisy sample x_t -> x_t-1
-                latents = self.scheduler.step(
-                    model_output=noise_pred,
-                    timestep=t,
-                    sample=latents
-                )
+        #         # compute the previous noisy sample x_t -> x_t-1
+        #         latents = self.scheduler.step(
+        #             model_output=noise_pred,
+        #             timestep=t,
+        #             sample=latents
+        #         )
                 
-                progress_bar.update()
+        #         progress_bar.update()
+
+        latents = Tensor(np.random.randn(1, 36, 64, 34, 62), ms.bfloat16)
 
         video = self.decode_vae(latents)
         print("="* 100 + "\n" + f"Step3. get video from vae server success.")

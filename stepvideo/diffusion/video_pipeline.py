@@ -20,18 +20,23 @@ from stepvideo.utils import VideoProcessor
 from stepvideo.parallel import is_distribute
 
 
-def call_api_gen(url, api, port=5000):
-    url =f"http://{url}:{port}/{api}-api"
+def call_api_gen(url, api):
+    # url =f"http://{url}:{port}/{api}-api"
+    vae_url = f"http://{url}:5001/{api}-api"
+    llm_url = f"http://{url}:5000/{api}-api"
+
     import aiohttp
     async def _fn(samples, *args, **kwargs):
         if api=='vae':
             data = {
                     "samples": samples,
                 }
+            url = vae_url
         elif api == 'caption':
             data = {
                     "prompts": samples,
                 }
+            url = llm_url
         else:
             raise Exception(f"Not supported api: {api}...")
         

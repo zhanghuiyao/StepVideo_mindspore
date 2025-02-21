@@ -99,7 +99,7 @@ tail -f outputs/parallel_logs/worker_0.log
 ```shell
 model_dir='./demo/stepfun-ai/stepvideo-t2v_mini'
 
-python test_vae_decode.py --model_dir $model_dir --ulysses_degree 1
+python test_vae_decode.py --model_dir $model_dir --ulysses_degree 1 --pp_degree 1
 ```
 
 
@@ -149,7 +149,8 @@ url='127.0.0.1'
 model_dir='./demo/stepfun-ai/stepvideo-t2v_mini'
 
 # run vae/captioner server on single-card (Ascend910*)
-ASCEND_RT_VISIBLE_DEVICES=6 python api/call_remote_server.py --model_dir $model_dir &
+ASCEND_RT_VISIBLE_DEVICES=5 python api/call_remote_server.py --model_dir $model_dir --enable_vae True &
+ASCEND_RT_VISIBLE_DEVICES=6 python api/call_remote_server.py --model_dir $model_dir --enable_llm True &
 
 # run main process on single-cards (Ascend910*)
 ASCEND_RT_VISIBLE_DEVICES=7 python run_server_test.py --model_dir $model_dir --vae_url $url --caption_url $url  --ulysses_degree $parallel --prompt "一名宇航员在月球上发现一块石碑，上面印有“MindSpore”字样，闪闪发光" --infer_steps 5  --cfg_scale 9.0 --time_shift 13.0 --num_frames 16

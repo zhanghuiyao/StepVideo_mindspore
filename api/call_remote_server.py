@@ -20,7 +20,11 @@ def parsed_args():
     parser.add_argument('--clip_dir', type=str, default='hunyuan_clip')
     parser.add_argument('--llm_dir', type=str, default='step_llm')
     parser.add_argument('--vae_dir', type=str, default='vae')
-    parser.add_argument('--port', type=str, default=None) #'8080'
+    parser.add_argument('--port', type=str, default=None) #'8080', default 5000
+
+    import ast
+    parser.add_argument('--enable_vae', type=ast.literal_eval, default=False) #'8080'
+    parser.add_argument('--enable_llm', type=str, default=False) #'8080'
     args = parser.parse_args()
     return args
 
@@ -72,22 +76,22 @@ class VAEapi(Resource):
         self.vae_pipeline = vae_pipeline
         
     def get(self):
-        # with lock:
-        #     try:
-        #
-        #     except Exception as e:
-        #         print("Caught Exception: ", e)
-        #         return Response(e)
-            
-        feature = pickle.loads(request.get_data())
-        feature['api'] = 'vae'
-    
-        feature = {k:v for k, v in feature.items() if v is not None}
-        video_latents = self.vae_pipeline.decode(**feature)
+        with lock:
+            #     try:
+            #
+            #     except Exception as e:
+            #         print("Caught Exception: ", e)
+            #         return Response(e)
+                
+            feature = pickle.loads(request.get_data())
+            feature['api'] = 'vae'
+        
+            feature = {k:v for k, v in feature.items() if v is not None}
+            video_latents = self.vae_pipeline.decode(**feature)
 
-        response = pickle.dumps(video_latents)
+            response = pickle.dumps(video_latents)
 
-        return Response(response)
+            return Response(response)
 
 
 
@@ -164,32 +168,51 @@ class Captionapi(Resource):
 
 class RemoteServer(object):
     def __init__(self, args) -> None:
+
+
+        if not self.enable_vae and not self.enable_llm:
+            raise ValueError
+        elif self.enable_vae and self.enable_llm:
+            print("warning: may out of memory on Ascend*")
+
+
         self.app = Flask(__name__)
         root = Blueprint("root", __name__)
         self.app.register_blueprint(root)
         api = Api(self.app)
         
-        self.vae_pipeline = StepVaePipeline(
-            vae_dir=os.path.join(args.model_dir, args.vae_dir)
-        )
-        api.add_resource(
-            VAEapi,
-            "/vae-api",
-            resource_class_args=[self.vae_pipeline],
-        )
+        if self.enable_vae:
+            self.vae_pipeline = StepVaePipeline(
+                vae_dir=os.path.join(args.model_dir, args.vae_dir)
+            )
+            api.add_resource(
+                VAEapi,
+                "/vae-api",
+                resource_class_args=[self.vae_pipeline],
+            )
         
-        self.caption_pipeline = CaptionPipeline(
-            llm_dir=os.path.join(args.model_dir, args.llm_dir), 
-            clip_dir=os.path.join(args.model_dir, args.clip_dir)
-        )
-        api.add_resource(
-            Captionapi,
-            "/caption-api",
-            resource_class_args=[self.caption_pipeline],
-        )
+        if self.enable_llm:
+            self.caption_pipeline = CaptionPipeline(
+                llm_dir=os.path.join(args.model_dir, args.llm_dir), 
+                clip_dir=os.path.join(args.model_dir, args.clip_dir)
+            )
+            api.add_resource(
+                Captionapi,
+                "/caption-api",
+                resource_class_args=[self.caption_pipeline],
+            )
 
 
     def run(self, host="0.0.0.0", port=8080):
+
+        if self.enable_vae:
+            port = 5001
+            print(f"enable vae, port setting to {port}")
+        
+        if self.enable_llm:
+            port = 5000
+            print(f"enable llm, port setting to {port}")
+
         self.app.run(host, port=port, threaded=True, debug=False)
 
 
