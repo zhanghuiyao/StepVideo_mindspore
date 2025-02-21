@@ -72,7 +72,8 @@ class Base_group_norm_with_zero_pad(nn.Cell):
     def construct(self, x, act_silu=True, pad_size=2):
         out_shape = list(x.shape)
         out_shape[1] += pad_size
-        out = mint.zeros(out_shape, dtype=x.dtype)
+        # out = mint.zeros(out_shape, dtype=x.dtype)  # FIXME: bug when @jit
+        out = ops.zeros(out_shape, dtype=x.dtype)
         out[:, pad_size:] = self.base_group_norm(x, act_silu=act_silu, channel_last=True)
         out[:, :pad_size] = 0
         return out
