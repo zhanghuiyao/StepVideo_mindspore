@@ -74,7 +74,7 @@ class VAEapi(Resource):
     def get(self):
         # with lock:
         #     try:
-            
+        #
         #     except Exception as e:
         #         print("Caught Exception: ", e)
         #         return Response(e)
@@ -195,5 +195,16 @@ class RemoteServer(object):
 
 if __name__ == "__main__":
     args = parsed_args()
+
+    ms.set_context(
+        mode=ms.PYNATIVE_MODE,
+        jit_config={"jit_level": "O0"},
+        deterministic="ON",
+        pynative_synchronize=True,
+        memory_optimize_level="O1",
+        max_device_memory="59GB",
+        # jit_syntax_level=ms.STRICT,
+    )
+
     flask_server = RemoteServer(args)
     flask_server.run(host="0.0.0.0", port=args.port)
