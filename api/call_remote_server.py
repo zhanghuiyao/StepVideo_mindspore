@@ -24,7 +24,7 @@ def parsed_args():
 
     import ast
     parser.add_argument('--enable_vae', type=ast.literal_eval, default=False) #'8080'
-    parser.add_argument('--enable_llm', type=str, default=False) #'8080'
+    parser.add_argument('--enable_llm', type=ast.literal_eval, default=False) #'8080'
     args = parser.parse_args()
     return args
 
@@ -169,6 +169,8 @@ class Captionapi(Resource):
 class RemoteServer(object):
     def __init__(self, args) -> None:
 
+        self.enable_vae = args.enable_vae
+        self.enable_llm = args.enable_llm
 
         if not self.enable_vae and not self.enable_llm:
             raise ValueError
