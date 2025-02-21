@@ -813,6 +813,8 @@ class Upsample3D(nn.Cell):
     def construct(self, x, is_init=True, is_split=True):
         b, c, t, h, w = x.shape
 
+        import pdb;pdb.set_trace()
+
         # for interpolate op
         _dtype = x.dtype
         x = x.to(ms.float32)
