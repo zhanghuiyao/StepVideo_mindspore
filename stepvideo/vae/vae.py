@@ -813,6 +813,8 @@ class Upsample3D(nn.Cell):
     def construct(self, x, is_init=True, is_split=True):
         b, c, t, h, w = x.shape
 
+        import pdb;pdb.set_trace()
+
         # x = x.permute(0,2,3,4,1).contiguous().permute(0,4,1,2,3).to(memory_format=torch.channels_last_3d)
         if is_split:
             split_size = c // 8
