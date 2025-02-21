@@ -44,7 +44,7 @@ class StepVaePipeline(Resource):
             z_channels=z_channels,
             model_path=model_path,
             version=version,
-        ).to(dtype)
+        ) #.to(dtype)  # FIXME: amp
         model.set_train(False)
         print("Inintialized vae...")
         return model
