@@ -153,11 +153,11 @@ if __name__ == "__main__":
 
 
         # numpy load
-        latent_model_input = Tensor(np.load("./latent_model_input.npy")).to(ms.bfloat16)
-        timestep = Tensor(np.load("./timestep.npy")).to(ms.bfloat16)
-        prompt_embeds = Tensor(np.load("./prompt_embeds.npy")).to(ms.bfloat16)
-        prompt_attention_mask = Tensor(np.load("./prompt_attention_mask.npy")).to(ms.bfloat16)
-        prompt_embeds_2 = Tensor(np.load("./prompt_embeds_2.npy")).to(ms.bfloat16)
+        latent_model_input = Tensor(np.load("./pt/latent_model_input.npy")).to(ms.bfloat16)
+        timestep = Tensor(np.load("./pt/timestep.npy")).to(ms.bfloat16)
+        prompt_embeds = Tensor(np.load("./pt/prompt_embeds.npy")).to(ms.bfloat16)
+        prompt_attention_mask = Tensor(np.load("./pt/prompt_attention_mask.npy")).to(ms.bfloat16)
+        prompt_embeds_2 = Tensor(np.load("./pt/prompt_embeds_2.npy")).to(ms.bfloat16)
 
 
 
@@ -171,7 +171,7 @@ if __name__ == "__main__":
         )
 
         # numpy save noise predict
-        np.save("./noise_pred.npy", noise_pred.detach().cpu().to(torch.float32).numpy())
+        np.save("./noise_pred.npy", noise_pred.to(ms.float32).asnumpy())
 
         import pdb;pdb.set_trace()
 
