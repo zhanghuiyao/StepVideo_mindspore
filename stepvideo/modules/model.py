@@ -109,6 +109,15 @@ class StepVideoModel(ModelMixin, ConfigMixin):
             self.full_all_gather = ops.AllGather()
             self.pp_all_gather = ops.AllGather(pp_group)
             
+            # reset split index
+            if self.pp_split_index >= self.config.num_layers:
+                if self.stage == 0:
+                    self.pp_split_index = self.config.num_layers//2
+                elif self.stage == 1:
+                    self.pp_split_index = self.config.num_layers - self.config.num_layers//2
+                
+                print(f"warning: reset `pp_split_index` to {self.pp_split_index}")
+
             # method 4, init
             mint_init_process_group()
 
