@@ -156,6 +156,11 @@ class StepVideoPipeline(DiffusionPipeline):
         )   # b,f,c,h,w
 
         latents = mint.randn(shape, dtype=dtype)
+
+        if is_distribute():
+            latents = ops.AllGather()(latents[None])[0]
+            print("synchronize latent between cards suceess.")
+
         return latents
 
 
