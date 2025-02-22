@@ -368,7 +368,6 @@ class StepVideoModel(ModelMixin, ConfigMixin):
 
         print("="*100 + "\n" + "run transformer block success." + "\n" + "="*100)
 
-        import pdb;pdb.set_trace()
         ############################################################################################################
 
 
@@ -494,9 +493,7 @@ class StepVideoModel(ModelMixin, ConfigMixin):
         # FIXME: zhy_test, pp end
         np.save("./out_hidden_states_stage_0.npy", hidden_states.to(ms.float32).asnumpy())
 
-
-        import pdb;pdb.set_trace()
-
+        print("="*100 + "\n" + "stage0: run transformer block success." + "\n" + "="*100)
         ################################################################################
 
 
@@ -627,6 +624,8 @@ class StepVideoModel(ModelMixin, ConfigMixin):
         
         # FIXME: zhy_test, pp end
         np.save("./out_hidden_states_stage_1.npy", hidden_states.to(ms.float32).asnumpy())
+        
+        print("="*100 + "\n" + "stage1: run transformer block success." + "\n" + "="*100)
         ################################################################################
 
 

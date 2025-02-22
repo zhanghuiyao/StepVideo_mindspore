@@ -172,8 +172,9 @@ if __name__ == "__main__":
 
         # numpy save noise predict
         np.save("./noise_pred.npy", noise_pred.to(ms.float32).asnumpy())
+        print("np.save `./noise_pred.npy` success")
 
-        import pdb;pdb.set_trace()
+        # import pdb;pdb.set_trace()
 
         # perform guidance
         if do_classifier_free_guidance:
