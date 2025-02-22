@@ -111,11 +111,7 @@ class StepVideoModel(ModelMixin, ConfigMixin):
             
             # reset split index
             if self.pp_split_index >= self.config.num_layers:
-                if self.stage == 0:
-                    self.pp_split_index = self.config.num_layers//2
-                elif self.stage == 1:
-                    self.pp_split_index = self.config.num_layers - self.config.num_layers//2
-                
+                self.pp_split_index = self.config.num_layers//2
                 print(f"warning: reset `pp_split_index` to {self.pp_split_index}")
 
             # method 4, init
@@ -137,14 +133,14 @@ class StepVideoModel(ModelMixin, ConfigMixin):
                             attention_type=attention_type,
                             sp_group=sp_group
                         )
-                        for _ in range(pp_split_index)
+                        for _ in range(self.pp_split_index)
                     ] + 
-                    [nn.Cell() for _ in range(pp_split_index, self.config.num_layers)]
+                    [nn.Cell() for _ in range(self.pp_split_index, self.config.num_layers)]
                 )
             
             elif self.stage == 1:
                 self.transformer_blocks = nn.CellList(
-                    [nn.Cell() for _ in range(pp_split_index)] + 
+                    [nn.Cell() for _ in range(self.pp_split_index)] + 
                     [
                         StepVideoTransformerBlock(
                             dim=self.inner_dim,
@@ -152,7 +148,7 @@ class StepVideoModel(ModelMixin, ConfigMixin):
                             attention_type=attention_type,
                             sp_group=sp_group
                         )
-                        for _ in range(pp_split_index, self.config.num_layers)
+                        for _ in range(self.pp_split_index, self.config.num_layers)
                     ]
                 )
             else:
