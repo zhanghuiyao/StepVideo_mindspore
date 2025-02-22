@@ -115,7 +115,7 @@ if __name__ == "__main__":
 
         ################# (1) load #############################################################
         # load from numpy for test
-        import pdb;pdb.set_trace()
+        # import pdb;pdb.set_trace()
         latents = Tensor(np.load("full_npys/latents_rank0.npy"), transformer_dtype)
         prompt_embeds = Tensor(np.load("full_npys/prompt_embeds_rank0.npy"), transformer_dtype)
         prompt_attention_mask = Tensor(np.load("full_npys/prompt_attention_mask_rank0.npy"), transformer_dtype)
