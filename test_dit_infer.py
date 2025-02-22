@@ -3,7 +3,7 @@ import mindspore as ms
 from stepvideo.diffusion.video_pipeline import StepVideoPipeline
 from stepvideo.config import parse_args
 from stepvideo.utils import setup_seed
-from stepvideo.parallel import initialize_parall_group
+from stepvideo.parallel import initialize_parall_group, get_rank, is_distribute
 
 
 # for test
@@ -111,87 +111,108 @@ if __name__ == "__main__":
         print("="* 100 + "\n" + f"Step2. get latent success.")
         print(f"{latents.shape=}")
 
-        # 7. Denoising loop
-        # with self.progress_bar(total=num_inference_steps) as progress_bar:
-        #     for i, t in enumerate(self.scheduler.timesteps):
-        #         latent_model_input = ops.cat([latents] * 2) if do_classifier_free_guidance else latents
-        #         latent_model_input = latent_model_input.to(transformer_dtype)
-        #         # broadcast to batch dimension in a way that's compatible with ONNX/Core ML
+
+
+        ################# (1) load #############################################################
+        # load from numpy for test
+        import pdb;pdb.set_trace()
+        latents = Tensor(np.load("full_npys/latents_rank0.npy"), transformer_dtype)
+        prompt_embeds = Tensor(np.load("full_npys/prompt_embeds_rank0.npy"), transformer_dtype)
+        prompt_attention_mask = Tensor(np.load("full_npys/prompt_attention_mask_rank0.npy"), transformer_dtype)
+        prompt_embeds_2 = Tensor(np.load("full_npys/prompt_embeds_2_rank0.npy"), transformer_dtype)
+        ################################################################################
+
+        ################ 7. Denoising loop ###############################################################################################
+        with self.progress_bar(total=num_inference_steps) as progress_bar:
+            for i, t in enumerate(self.scheduler.timesteps):
+                latent_model_input = ops.cat([latents] * 2) if do_classifier_free_guidance else latents
+                latent_model_input = latent_model_input.to(transformer_dtype)
+                # broadcast to batch dimension in a way that's compatible with ONNX/Core ML
                 
-        #         timestep = t.broadcast_to((latent_model_input.shape[0],)).to(latent_model_input.dtype)
+                timestep = t.broadcast_to((latent_model_input.shape[0],)).to(latent_model_input.dtype)
 
-        #         noise_pred = self.transformer(
-        #             hidden_states=latent_model_input,
-        #             timestep=timestep,
-        #             encoder_hidden_states=prompt_embeds,
-        #             encoder_attention_mask=prompt_attention_mask,
-        #             encoder_hidden_states_2=prompt_embeds_2,
-        #             return_dict=False,
-        #         )
-        #         # perform guidance
-        #         if do_classifier_free_guidance:
-        #             noise_pred_text, noise_pred_uncond = noise_pred.chunk(2)
-        #             noise_pred = noise_pred_uncond + guidance_scale * (noise_pred_text - noise_pred_uncond)
+                noise_pred = self.transformer(
+                    hidden_states=latent_model_input,
+                    timestep=timestep,
+                    encoder_hidden_states=prompt_embeds,
+                    encoder_attention_mask=prompt_attention_mask,
+                    encoder_hidden_states_2=prompt_embeds_2,
+                    return_dict=False,
+                )
 
-        #         # compute the previous noisy sample x_t -> x_t-1
-        #         latents = self.scheduler.step(
-        #             model_output=noise_pred,
-        #             timestep=t,
-        #             sample=latents
-        #         )
+                ################# (2) save #############################################################
+                np.save(f"noise_pred_step{i}_rank{get_rank() if is_distribute() else 0}.npy", noise_pred.to(ms.float32).asnumpy())
+                print("noise_pred save success.")
+                ################################################################################
+
+                # perform guidance
+                if do_classifier_free_guidance:
+                    noise_pred_text, noise_pred_uncond = noise_pred.chunk(2)
+                    noise_pred = noise_pred_uncond + guidance_scale * (noise_pred_text - noise_pred_uncond)
+
+                # compute the previous noisy sample x_t -> x_t-1
+                latents = self.scheduler.step(
+                    model_output=noise_pred,
+                    timestep=t,
+                    sample=latents
+                )
                 
-        #         progress_bar.update()
+                ################# (3) save #############################################################
+                np.save(f"latents_step{i}_rank{get_rank() if is_distribute() else 0}.npy", latents.to(ms.float32).asnumpy())
+                print("latents save success.")
+                ################################################################################
+
+                progress_bar.update()
+
+
+        ################ 7.1 run onece ###############################################################################################
+        # t = self.scheduler.timesteps[0]
+        # latent_model_input = ops.cat([latents] * 2) if do_classifier_free_guidance else latents
+        # latent_model_input = latent_model_input.to(transformer_dtype)
+        # # broadcast to batch dimension in a way that's compatible with ONNX/Core ML
+        # timestep = t.broadcast_to((latent_model_input.shape[0],)).to(latent_model_input.dtype)
+
+
+        # # numpy load
+        # latent_model_input = Tensor(np.load("./pt/latent_model_input.npy")).to(ms.bfloat16)
+        # timestep = Tensor(np.load("./pt/timestep.npy")).to(ms.bfloat16)
+        # prompt_embeds = Tensor(np.load("./pt/prompt_embeds.npy")).to(ms.bfloat16)
+        # prompt_attention_mask = Tensor(np.load("./pt/prompt_attention_mask.npy")).to(ms.bfloat16)
+        # prompt_embeds_2 = Tensor(np.load("./pt/prompt_embeds_2.npy")).to(ms.bfloat16)
 
 
 
-        # 7.1 run onece
-        t = self.scheduler.timesteps[0]
-        latent_model_input = ops.cat([latents] * 2) if do_classifier_free_guidance else latents
-        latent_model_input = latent_model_input.to(transformer_dtype)
-        # broadcast to batch dimension in a way that's compatible with ONNX/Core ML
-        timestep = t.broadcast_to((latent_model_input.shape[0],)).to(latent_model_input.dtype)
+        # noise_pred = self.transformer(
+        #     hidden_states=latent_model_input,
+        #     timestep=timestep,
+        #     encoder_hidden_states=prompt_embeds,
+        #     encoder_attention_mask=prompt_attention_mask,
+        #     encoder_hidden_states_2=prompt_embeds_2,
+        #     return_dict=False,
+        # )
 
+        # # numpy save noise predict
+        # from stepvideo.parallel import get_rank, is_distribute
+        # if is_distribute():
+        #     np.save(f"./noise_pred_rank{get_rank()}.npy", noise_pred.to(ms.float32).asnumpy())
+        #     print(f"np.save `./noise_pred_rank{get_rank()}.npy` success")
+        # else:
+        #     np.save("./noise_pred.npy", noise_pred.to(ms.float32).asnumpy())
+        #     print("np.save `./noise_pred.npy` success")
 
-        # numpy load
-        latent_model_input = Tensor(np.load("./pt/latent_model_input.npy")).to(ms.bfloat16)
-        timestep = Tensor(np.load("./pt/timestep.npy")).to(ms.bfloat16)
-        prompt_embeds = Tensor(np.load("./pt/prompt_embeds.npy")).to(ms.bfloat16)
-        prompt_attention_mask = Tensor(np.load("./pt/prompt_attention_mask.npy")).to(ms.bfloat16)
-        prompt_embeds_2 = Tensor(np.load("./pt/prompt_embeds_2.npy")).to(ms.bfloat16)
+        # # import pdb;pdb.set_trace()
 
-
-
-        noise_pred = self.transformer(
-            hidden_states=latent_model_input,
-            timestep=timestep,
-            encoder_hidden_states=prompt_embeds,
-            encoder_attention_mask=prompt_attention_mask,
-            encoder_hidden_states_2=prompt_embeds_2,
-            return_dict=False,
-        )
-
-        # numpy save noise predict
-        from stepvideo.parallel import get_rank, is_distribute
-        if is_distribute():
-            np.save(f"./noise_pred_rank{get_rank()}.npy", noise_pred.to(ms.float32).asnumpy())
-            print(f"np.save `./noise_pred_rank{get_rank()}.npy` success")
-        else:
-            np.save("./noise_pred.npy", noise_pred.to(ms.float32).asnumpy())
-            print("np.save `./noise_pred.npy` success")
-
-
-        # import pdb;pdb.set_trace()
-
-        # perform guidance
-        if do_classifier_free_guidance:
-            noise_pred_text, noise_pred_uncond = noise_pred.chunk(2)
-            noise_pred = noise_pred_uncond + guidance_scale * (noise_pred_text - noise_pred_uncond)
-        # compute the previous noisy sample x_t -> x_t-1
-        latents = self.scheduler.step(
-            model_output=noise_pred,
-            timestep=t,
-            sample=latents
-        )
+        # # perform guidance
+        # if do_classifier_free_guidance:
+        #     noise_pred_text, noise_pred_uncond = noise_pred.chunk(2)
+        #     noise_pred = noise_pred_uncond + guidance_scale * (noise_pred_text - noise_pred_uncond)
+        # # compute the previous noisy sample x_t -> x_t-1
+        # latents = self.scheduler.step(
+        #     model_output=noise_pred,
+        #     timestep=t,
+        #     sample=latents
+        # )
+        ###############################################################################################################
 
 
         # video = self.decode_vae(latents)
@@ -207,7 +228,7 @@ if __name__ == "__main__":
     pipeline.new_call = types.MethodType(new_call_fn, pipeline)
 
 
-    args.infer_steps = 5  # for test
+    # args.infer_steps = 5  # for test
     prompt = args.prompt
     videos = pipeline.new_call(
         prompt=prompt, 
