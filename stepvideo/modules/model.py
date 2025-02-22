@@ -346,15 +346,15 @@ class StepVideoModel(ModelMixin, ConfigMixin):
         
 
         ############################################################################################################
-        # FIXME: zhy_test, sp start
-        if self.sp_size > 1:
-            np.save(f"./in_hidden_states_sp_{self.sp_rank}.npy", hidden_states.to(ms.float32).asnumpy())
-            np.save(f"./in_encoder_hidden_states_sp_{self.sp_rank}.npy", hidden_states.to(ms.float32).asnumpy())
-            np.save(f"./in_attn_mask_sp_{self.sp_rank}.npy", attn_mask.to(ms.float32).asnumpy())
-        else:
-            np.save("./in_hidden_states.npy", hidden_states.to(ms.float32).asnumpy())
-            np.save("./in_encoder_hidden_states.npy", hidden_states.to(ms.float32).asnumpy())
-            np.save("./in_attn_mask.npy", attn_mask.to(ms.float32).asnumpy())
+        # # FIXME: zhy_test, sp start
+        # if self.sp_size > 1:
+        #     np.save(f"./in_hidden_states_sp_{self.sp_rank}.npy", hidden_states.to(ms.float32).asnumpy())
+        #     np.save(f"./in_encoder_hidden_states_sp_{self.sp_rank}.npy", hidden_states.to(ms.float32).asnumpy())
+        #     np.save(f"./in_attn_mask_sp_{self.sp_rank}.npy", attn_mask.to(ms.float32).asnumpy())
+        # else:
+        #     np.save("./in_hidden_states.npy", hidden_states.to(ms.float32).asnumpy())
+        #     np.save("./in_encoder_hidden_states.npy", hidden_states.to(ms.float32).asnumpy())
+        #     np.save("./in_attn_mask.npy", attn_mask.to(ms.float32).asnumpy())
 
         hidden_states = self.block_forward(
             hidden_states,
@@ -365,13 +365,13 @@ class StepVideoModel(ModelMixin, ConfigMixin):
             parallel=self.parallel
         )
 
-        # FIXME: zhy_test, sp end
-        if self.sp_size > 1:
-            np.save(f"./out_hidden_states_sp_{self.sp_rank}.npy", hidden_states.to(ms.float32).asnumpy())
-        else:
-            np.save("./out_hidden_states.npy", hidden_states.to(ms.float32).asnumpy())
+        # # FIXME: zhy_test, sp end
+        # if self.sp_size > 1:
+        #     np.save(f"./out_hidden_states_sp_{self.sp_rank}.npy", hidden_states.to(ms.float32).asnumpy())
+        # else:
+        #     np.save("./out_hidden_states.npy", hidden_states.to(ms.float32).asnumpy())
 
-        print("="*100 + "\n" + "run transformer block success." + "\n" + "="*100)
+        # print("="*100 + "\n" + "run transformer block success." + "\n" + "="*100)
 
         ############################################################################################################
 
@@ -460,9 +460,9 @@ class StepVideoModel(ModelMixin, ConfigMixin):
         ################################################################################
         
         # FIXME: zhy_test, pp start
-        np.save("./in_hidden_states_stage_0.npy", hidden_states.to(ms.float32).asnumpy())
-        np.save("./in_encoder_hidden_states_stage_0.npy", hidden_states.to(ms.float32).asnumpy())
-        np.save("./in_attn_mask_stage_0.npy", attn_mask.to(ms.float32).asnumpy())
+        # np.save("./in_hidden_states_stage_0.npy", hidden_states.to(ms.float32).asnumpy())
+        # np.save("./in_encoder_hidden_states_stage_0.npy", hidden_states.to(ms.float32).asnumpy())
+        # np.save("./in_attn_mask_stage_0.npy", attn_mask.to(ms.float32).asnumpy())
         
         
         # !!! block_forward, w/ chunk, w/o sp_all_gather
@@ -496,9 +496,8 @@ class StepVideoModel(ModelMixin, ConfigMixin):
         print("stage0: second sync recv success")
 
         # FIXME: zhy_test, pp end
-        np.save("./out_hidden_states_stage_0.npy", hidden_states.to(ms.float32).asnumpy())
-
-        print("="*100 + "\n" + "stage0: run transformer block success." + "\n" + "="*100)
+        # np.save("./out_hidden_states_stage_0.npy", hidden_states.to(ms.float32).asnumpy())
+        # print("="*100 + "\n" + "stage0: run transformer block success." + "\n" + "="*100)
         ################################################################################
 
 
@@ -590,10 +589,10 @@ class StepVideoModel(ModelMixin, ConfigMixin):
         ################################################################################
         # !!! block_forward, w/o chunk, w/ sp_all_gather !!!
         
-        # FIXME: zhy_test, pp start
-        np.save("./in_hidden_states_stage_1.npy", hidden_states.to(ms.float32).asnumpy())
-        np.save("./in_encoder_hidden_states_stage_1.npy", hidden_states.to(ms.float32).asnumpy())
-        np.save("./in_attn_mask_stage_1.npy", attn_mask.to(ms.float32).asnumpy())
+        # # FIXME: zhy_test, pp start
+        # np.save("./in_hidden_states_stage_1.npy", hidden_states.to(ms.float32).asnumpy())
+        # np.save("./in_encoder_hidden_states_stage_1.npy", hidden_states.to(ms.float32).asnumpy())
+        # np.save("./in_attn_mask_stage_1.npy", attn_mask.to(ms.float32).asnumpy())
 
         # recv stage0 out hidden_states
         print("stage1: first recving...")
@@ -628,9 +627,8 @@ class StepVideoModel(ModelMixin, ConfigMixin):
         print("stage1: second sync send success")
         
         # FIXME: zhy_test, pp end
-        np.save("./out_hidden_states_stage_1.npy", hidden_states.to(ms.float32).asnumpy())
-        
-        print("="*100 + "\n" + "stage1: run transformer block success." + "\n" + "="*100)
+        # np.save("./out_hidden_states_stage_1.npy", hidden_states.to(ms.float32).asnumpy())
+        # print("="*100 + "\n" + "stage1: run transformer block success." + "\n" + "="*100)
         ################################################################################
 
 

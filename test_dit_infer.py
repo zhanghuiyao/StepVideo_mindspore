@@ -171,8 +171,14 @@ if __name__ == "__main__":
         )
 
         # numpy save noise predict
-        np.save("./noise_pred.npy", noise_pred.to(ms.float32).asnumpy())
-        print("np.save `./noise_pred.npy` success")
+        from stepvideo.parallel import get_rank, is_distribute
+        if is_distribute():
+            np.save("./noise_pred.npy", noise_pred.to(ms.float32).asnumpy())
+            print("np.save `./noise_pred.npy` success")
+        else:
+            np.save(f"./noise_pred_rank{get_rank()}.npy", noise_pred.to(ms.float32).asnumpy())
+            print(f"np.save `./noise_pred_rank{get_rank()}.npy` success")
+
 
         # import pdb;pdb.set_trace()
 
