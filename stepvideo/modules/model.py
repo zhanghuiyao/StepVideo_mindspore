@@ -229,7 +229,6 @@ class StepVideoModel(ModelMixin, ConfigMixin):
             )
 
 
-
     def patchfy(self, hidden_states):
         # hidden_states = rearrange(hidden_states, 'b f c h w -> (b f) c h w')
         b, f, c, h, w = hidden_states.shape
@@ -309,7 +308,7 @@ class StepVideoModel(ModelMixin, ConfigMixin):
         bsz, frame, _, height, width = hidden_states.shape
         height, width = height // self.patch_size, width // self.patch_size
                 
-        hidden_states = self.patchfy(hidden_states) 
+        hidden_states = self.patchfy(hidden_states)   # b*f, h*w, c
         len_frame = hidden_states.shape[1]
                 
         if self.use_additional_conditions:
@@ -336,7 +335,22 @@ class StepVideoModel(ModelMixin, ConfigMixin):
         hidden_states = hidden_states.view(bsz, frame * len_frame, -1)
 
         encoder_hidden_states, attn_mask = self.prepare_attn_mask(encoder_attention_mask, encoder_hidden_states, q_seqlen=frame*len_frame)
+
+
+
         
+
+        ############################################################################################################
+        # FIXME: zhy_test, sp start
+        if self.sp_size > 1:
+            np.save(f"./in_hidden_states_sp_{self.sp_rank}", hidden_states.to(ms.float32).asnumpy())
+            np.save(f"./in_encoder_hidden_states_sp_{self.sp_rank}", hidden_states.to(ms.float32).asnumpy())
+            np.save(f"./in_attn_mask_sp_{self.sp_rank}", attn_mask.to(ms.float32).asnumpy())
+        else:
+            np.save("./in_hidden_states", hidden_states.to(ms.float32).asnumpy())
+            np.save("./in_encoder_hidden_states", hidden_states.to(ms.float32).asnumpy())
+            np.save("./in_attn_mask", attn_mask.to(ms.float32).asnumpy())
+
         hidden_states = self.block_forward(
             hidden_states,
             encoder_hidden_states,
@@ -345,7 +359,21 @@ class StepVideoModel(ModelMixin, ConfigMixin):
             attn_mask=attn_mask,
             parallel=self.parallel
         )
-        
+
+        # FIXME: zhy_test, sp end
+        if self.sp_size > 1:
+            np.save(f"./out_hidden_states_sp_{self.sp_rank}", hidden_states.to(ms.float32).asnumpy())
+        else:
+            np.save("./out_hidden_states", hidden_states.to(ms.float32).asnumpy())
+
+        print("="*100 + "\n" + "run transformer block success." + "\n" + "="*100)
+
+        import pdb;pdb.set_trace()
+        ############################################################################################################
+
+
+
+
         # hidden_states = rearrange(hidden_states, 'b (f l) d -> (b f) l d', b=bsz, f=frame, l=len_frame)
         hidden_states = hidden_states.view(bsz * frame, len_frame, -1)
 

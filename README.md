@@ -51,7 +51,7 @@ ASCEND_RT_VISIBLE_DEVICES=1 python api/call_remote_server.py --model_dir $model_
 
 # run main process on multi-cards (Ascend910*)
 ASCEND_RT_VISIBLE_DEVICES=4,5,6,7 msrun --bind_core=True --worker_num=$parallel --local_worker_num=$parallel --master_port=9000 --log_dir=outputs/parallel_logs python -u \
-run_parallel.py --model_dir $model_dir --vae_url $url --caption_url $url  --ulysses_degree $sp --pp_degree $pp --prompt "一名宇航员在月球上发现一块石碑，上面印有“MindSpore”字样，闪闪发光" --infer_steps 30  --cfg_scale 9.0 --time_shift 13.0 --num_frames 136 --height 544 --width 992
+run_parallel.py --model_dir $model_dir --vae_url $url --caption_url $url  --ulysses_degree $sp --pp_degree $pp --prompt "一名宇航员在月球上发现一块石碑，上面印有“stepfun”字样，闪闪发光" --infer_steps 30  --cfg_scale 9.0 --time_shift 13.0 --num_frames 136 --height 544 --width 992
 ```
 
 
@@ -59,8 +59,8 @@ run_parallel.py --model_dir $model_dir --vae_url $url --caption_url $url  --ulys
 
 |     Model    |  height/width/frame |  Peak Memory | 50 steps w flash-attn | 50 steps w/o flash-attn |
 |:------------:|:------------:|:------------:|:------------:|:------------:|
-| Step-Video-T2V   |        544px992px204f      |  45.83 GB | not support | ~ 68 min |
-| Step-Video-T2V   |        544px992px136f      |  - GB | not support | - min |
+| Step-Video-T2V   |        544px992px204f      |  45.83 GB | not support | ~68 min |
+| Step-Video-T2V   |        544px992px136f      |  40.48 GB | not support | ~37 min |
 
 
 
@@ -81,7 +81,7 @@ parallel=1
 url='127.0.0.1'
 model_dir='./demo/stepfun-ai/stepvideo-t2v_mini'
 
-python run_single_test.py --model_dir $model_dir --vae_url $url --caption_url $url  --ulysses_degree $parallel --pp_degree 1 --prompt "一名宇航员在月球上发现一块石碑，上面印有“MindSpore”字样，闪闪发光" --infer_steps 5  --cfg_scale 9.0 --time_shift 13.0 --num_frames 16 --height 128 --width 128
+python run_single_test.py --model_dir $model_dir --vae_url $url --caption_url $url  --ulysses_degree $parallel --pp_degree 1 --prompt "一名宇航员在月球上发现一块石碑，上面印有“stepfun”字样，闪闪发光" --infer_steps 5  --cfg_scale 9.0 --time_shift 13.0 --num_frames 16 --height 128 --width 128
 ```
 
 
@@ -91,7 +91,7 @@ url='127.0.0.1'
 model_dir='./demo/stepfun-ai/stepvideo-t2v_mini'
 
 ASCEND_RT_VISIBLE_DEVICES=4,5,6,7 msrun --bind_core=True --worker_num=$parallel --local_worker_num=$parallel --master_port=9000 --log_dir=outputs/parallel_logs python \
-run_single_test.py --model_dir $model_dir --vae_url $url --caption_url $url  --ulysses_degree $parallel --prompt "一名宇航员在月球上发现一块石碑，上面印有“MindSpore”字样，闪闪发光" --infer_steps 5  --cfg_scale 9.0 --time_shift 13.0 --num_frames 16 --height 128 --width 128
+run_single_test.py --model_dir $model_dir --vae_url $url --caption_url $url  --ulysses_degree $parallel --prompt "一名宇航员在月球上发现一块石碑，上面印有“stepfun”字样，闪闪发光" --infer_steps 5  --cfg_scale 9.0 --time_shift 13.0 --num_frames 16 --height 128 --width 128
 
 tail -f outputs/parallel_logs/worker_0.log
 ```
@@ -111,7 +111,7 @@ python test_vae_decode.py --model_dir $model_dir --ulysses_degree 1 --pp_degree 
 ```shell
 model_dir='./demo/stepfun-ai/stepvideo-t2v_mini'
 
-python test_llm.py --model_dir $model_dir --ulysses_degree 1 --pp_degree 1 --prompt "一名宇航员在月球上发现一块石碑，上面印有“MindSpore”字样，闪闪发光"
+python test_llm.py --model_dir $model_dir --ulysses_degree 1 --pp_degree 1 --prompt "一名宇航员在月球上发现一块石碑，上面印有“stepfun”字样，闪闪发光"
 ```
 
 
@@ -124,7 +124,7 @@ parallel=1
 url='127.0.0.1'
 model_dir='./demo/stepfun-ai/stepvideo-t2v_mini'
 
-ASCEND_RT_VISIBLE_DEVICES=5 python -u test_dit_infer.py --model_dir $model_dir --vae_url $url --caption_url $url  --ulysses_degree 1 --pp_degree 1 --prompt "一名宇航员在月球上发现一块石碑，上面印有“MindSpore”字样，闪闪发光" --infer_steps 5  --cfg_scale 9.0 --time_shift 13.0 --num_frames 16 --height 128 --width 128
+ASCEND_RT_VISIBLE_DEVICES=5 python -u test_dit_infer.py --model_dir $model_dir --vae_url $url --caption_url $url  --ulysses_degree 1 --pp_degree 1 --prompt "一名宇航员在月球上发现一块石碑，上面印有“stepfun”字样，闪闪发光" --infer_steps 5  --cfg_scale 9.0 --time_shift 13.0 --num_frames 16 --height 128 --width 128
 ```
 
 
@@ -135,7 +135,7 @@ url='127.0.0.1'
 model_dir='./demo/stepfun-ai/stepvideo-t2v_mini'
 
 ASCEND_RT_VISIBLE_DEVICES=4,5,6,7 msrun --bind_core=True --worker_num=$parallel --local_worker_num=$parallel --master_port=9000 --log_dir=outputs/parallel_logs python \
-test_dit_infer.py --model_dir $model_dir --vae_url $url --caption_url $url  --ulysses_degree $parallel --prompt "一名宇航员在月球上发现一块石碑，上面印有“MindSpore”字样，闪闪发光" --infer_steps 5  --cfg_scale 9.0 --time_shift 13.0 --num_frames 16 --height 128 --width 128
+test_dit_infer.py --model_dir $model_dir --vae_url $url --caption_url $url  --ulysses_degree $parallel --prompt "一名宇航员在月球上发现一块石碑，上面印有“stepfun”字样，闪闪发光" --infer_steps 5  --cfg_scale 9.0 --time_shift 13.0 --num_frames 16 --height 128 --width 128
 
 tail -f outputs/parallel_logs/worker_0.log
 ```
@@ -150,7 +150,7 @@ url='127.0.0.1'
 model_dir='./demo/stepfun-ai/stepvideo-t2v_mini'
 
 ASCEND_RT_VISIBLE_DEVICES=4,5,6,7 msrun --bind_core=True --worker_num=$parallel --local_worker_num=$parallel --master_port=9000 --log_dir=outputs/parallel_logs python \
-test_dit_infer.py --model_dir $model_dir --vae_url $url --caption_url $url  --ulysses_degree $sp --pp_degree $pp --prompt "一名宇航员在月球上发现一块石碑，上面印有“MindSpore”字样，闪闪发光" --infer_steps 5  --cfg_scale 9.0 --time_shift 13.0 --num_frames 136
+test_dit_infer.py --model_dir $model_dir --vae_url $url --caption_url $url  --ulysses_degree $sp --pp_degree $pp --prompt "一名宇航员在月球上发现一块石碑，上面印有“stepfun”字样，闪闪发光" --infer_steps 5  --cfg_scale 9.0 --time_shift 13.0 --num_frames 136
 
 tail -f outputs/parallel_logs/worker_0.log
 ```
@@ -176,7 +176,7 @@ ASCEND_RT_VISIBLE_DEVICES=5 python api/call_remote_server.py --model_dir $model_
 ASCEND_RT_VISIBLE_DEVICES=6 python api/call_remote_server.py --model_dir $model_dir --enable_llm True &
 
 # run main process on single-cards (Ascend910*)
-ASCEND_RT_VISIBLE_DEVICES=7 python run_server_test.py --model_dir $model_dir --vae_url $url --caption_url $url  --ulysses_degree 1 --pp_degree 1 --prompt "一名宇航员在月球上发现一块石碑，上面印有“MindSpore”字样，闪闪发光" --infer_steps 5  --cfg_scale 9.0 --time_shift 13.0 --num_frames 16
+ASCEND_RT_VISIBLE_DEVICES=7 python run_server_test.py --model_dir $model_dir --vae_url $url --caption_url $url  --ulysses_degree 1 --pp_degree 1 --prompt "一名宇航员在月球上发现一块石碑，上面印有“stepfun”字样，闪闪发光" --infer_steps 5  --cfg_scale 9.0 --time_shift 13.0 --num_frames 16
 ```
 
 
