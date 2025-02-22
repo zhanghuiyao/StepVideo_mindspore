@@ -55,8 +55,10 @@ if __name__ == "__main__":
         return samples
 
 
+    import pdb;pdb.set_trace()
     # x = Tensor(np.random.randn(1, 36, 64, 34, 62))
-    x = np.load("npys/vae_input_numpy.npy")
+    x = np.load("full_npys/latents_step29_rank0.npy")
+
     
     out = decode_vae(x)
 
