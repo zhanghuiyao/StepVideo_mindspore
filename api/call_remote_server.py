@@ -1,4 +1,5 @@
 import os
+import ast
 from flask import Flask, Response, jsonify, request, Blueprint
 from flask_restful import Api, Resource
 import pickle
@@ -22,7 +23,6 @@ def parsed_args():
     parser.add_argument('--vae_dir', type=str, default='vae')
     parser.add_argument('--port', type=str, default=None) #'8080', default 5000
 
-    import ast
     parser.add_argument('--enable_vae', type=ast.literal_eval, default=False) #'8080'
     parser.add_argument('--enable_llm', type=ast.literal_eval, default=False) #'8080'
     args = parser.parse_args()
