@@ -14,17 +14,22 @@ pip install git+https://github.com/zhanghuiyao/mindone.git@step_video
 
 
 
-## run inference
+## inference
+
 
 ### step 1: (option but recommend) download weights
 
 link: https://huggingface.co/stepfun-ai/stepvideo-t2v
 
 
+
 ### step 2: convert a `.bin` weight (hunyuan-clip) format from `pytorch_model.bin` to `model.safetensors`
 
 ```shell
-python convert.py --pt_filename where_pt_dir --sf_filename where_safetensors_dir --config_path where_{config.json}_dir
+python convert.py --pt_filename where_bin_file --sf_filename where_safetensors_file --config_path where_{config.json}_file
+
+# example as:
+python convert.py --pt_filename /path_to/stepfun-ai/stepvideo-t2v/hunyuan_clip/clip_text_encoder/pytorch_model.bin --sf_filename /path_to/stepfun-ai/stepvideo-t2v/hunyuan_clip/clip_text_encoder/model.safetensors --config_path /path_to/stepfun-ai/stepvideo-t2v/hunyuan_clip/clip_text_encoder/config.json
 ```
 
 
